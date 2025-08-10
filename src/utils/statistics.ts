@@ -21,6 +21,10 @@ export class StatisticsUtils {
     const firstAverage = recentSessions[0].statistics.averageTime;
     const lastAverage = recentSessions[recentSessions.length - 1].statistics.averageTime;
 
+    if (firstAverage === 0) {
+      return { trend: 'STABLE', percentage: 0 };
+    }
+
     const improvementPercentage = ((firstAverage - lastAverage) / firstAverage) * 100;
 
     if (Math.abs(improvementPercentage) < 5) {

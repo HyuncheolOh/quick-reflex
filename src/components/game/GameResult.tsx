@@ -96,12 +96,23 @@ export const GameResult: React.FC<GameResultProps> = ({
           statistics.validAttempts > 0 ? COLORS.INFO : COLORS.TEXT_SECONDARY
         )}
         
-        {renderStatCard(
-          '정확도',
-          `${Math.round((statistics.validAttempts / statistics.totalAttempts) * 100)}%`,
-          `${statistics.validAttempts}/${statistics.totalAttempts}`,
-          statistics.validAttempts === statistics.totalAttempts ? COLORS.SUCCESS : COLORS.WARNING
-        )}
+        {(() => {
+          const accuracy =
+            statistics.totalAttempts > 0
+              ? Math.round(
+                  (statistics.validAttempts / statistics.totalAttempts) * 100
+                )
+              : 0;
+          return renderStatCard(
+            '정확도',
+            `${accuracy}%`,
+            `${statistics.validAttempts}/${statistics.totalAttempts}`,
+            statistics.totalAttempts > 0 &&
+            statistics.validAttempts === statistics.totalAttempts
+              ? COLORS.SUCCESS
+              : COLORS.WARNING
+          );
+        })()}
         
         {statistics.worstTime > 0 && statistics.validAttempts > 1 && renderStatCard(
           '최저 기록',

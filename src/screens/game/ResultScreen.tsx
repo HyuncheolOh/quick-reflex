@@ -74,10 +74,23 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({ navigation, route })
         gameSession.statistics.averageTime,
         gameSession.statistics.validAttempts > 0
       );
-      const shareText = `QuickReflex 순발력 테스트 결과!\n\n` +
-        `평균 반응시간: ${GameLogic.formatTime(gameSession.statistics.averageTime)}\n` +
-        `최고 반응시간: ${GameLogic.formatTime(gameSession.statistics.bestTime)}\n` +
-        `정확도: ${Math.round((gameSession.statistics.validAttempts / gameSession.statistics.totalAttempts) * 100)}%\n\n` +
+      const accuracy =
+        gameSession.statistics.totalAttempts > 0
+          ? Math.round(
+              (gameSession.statistics.validAttempts /
+                gameSession.statistics.totalAttempts) *
+                100
+            )
+          : 0;
+      const shareText =
+        `QuickReflex 순발력 테스트 결과!\n\n` +
+        `평균 반응시간: ${GameLogic.formatTime(
+          gameSession.statistics.averageTime
+        )}\n` +
+        `최고 반응시간: ${GameLogic.formatTime(
+          gameSession.statistics.bestTime
+        )}\n` +
+        `정확도: ${accuracy}%\n\n` +
         `${performance.message} 🎉\n\n` +
         `당신도 도전해보세요! #QuickReflex #순발력테스트`;
 
