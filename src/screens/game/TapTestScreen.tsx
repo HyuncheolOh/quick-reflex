@@ -119,8 +119,8 @@ export const TapTestScreen: React.FC<TapTestScreenProps> = ({ navigation }) => {
     setMessage(GAME_MESSAGES.TOO_SLOW);
 
     setTimeout(() => {
-      completeGame();
-    }, 1500);
+      nextRound();
+    }, GAME_CONFIG.RESULT_DISPLAY_TIME);
   };
 
   const startRound = () => {
@@ -211,7 +211,7 @@ export const TapTestScreen: React.FC<TapTestScreenProps> = ({ navigation }) => {
         setMessage(GAME_MESSAGES.TOO_EARLY);
 
         setTimeout(() => {
-          completeGame();
+          nextRound();
         }, GAME_CONFIG.RESULT_DISPLAY_TIME);
         break;
 
@@ -250,16 +250,12 @@ export const TapTestScreen: React.FC<TapTestScreenProps> = ({ navigation }) => {
   };
 
   const nextRound = () => {
-    // 성공한 시도 수를 기준으로 게임 진행도 체크
-    const successfulAttempts = attempts.filter(
-      (attempt) => attempt.isValid
-    ).length;
+    const totalAttempts = attempts.length;
 
-    if (successfulAttempts >= gameState.totalRounds) {
+    if (totalAttempts >= gameState.totalRounds) {
       completeGame();
     } else {
-      // 실패한 라운드는 카운트에서 제외하고 계속 진행
-      const newRound = Math.max(gameState.currentRound, successfulAttempts);
+      const newRound = totalAttempts;
 
       setGameState((prev) => ({
         ...prev,
@@ -278,9 +274,13 @@ export const TapTestScreen: React.FC<TapTestScreenProps> = ({ navigation }) => {
   };
 
   const completeGame = async () => {
+    const successfulAttempts = attempts.filter((a) => a.isValid).length;
+    const finalState =
+      successfulAttempts === 0 ? GameState.FAILED : GameState.GAME_COMPLETE;
+
     setGameState((prev) => ({
       ...prev,
-      currentState: GameState.GAME_COMPLETE,
+      currentState: finalState,
     }));
 
     setMessage(GAME_MESSAGES.GAME_COMPLETE);
@@ -290,7 +290,7 @@ export const TapTestScreen: React.FC<TapTestScreenProps> = ({ navigation }) => {
         "TAP_TEST",
         attempts,
         true,
-        false
+        successfulAttempts === 0
       );
 
       setTimeout(() => {
@@ -317,7 +317,7 @@ export const TapTestScreen: React.FC<TapTestScreenProps> = ({ navigation }) => {
         attempts,
         statistics: GameLogic.calculateStatistics(attempts),
         isCompleted: true,
-        isFailed: false,
+        isFailed: attempts.every((a) => !a.isValid),
       };
       navigation.navigate("Result", { gameSession: tempSession });
     }
@@ -331,10 +331,7 @@ export const TapTestScreen: React.FC<TapTestScreenProps> = ({ navigation }) => {
   };
 
   const getProgressPercentage = () => {
-    const successfulAttempts = attempts.filter(
-      (attempt) => attempt.isValid
-    ).length;
-    return (successfulAttempts / gameState.totalRounds) * 100;
+    return (attempts.length / gameState.totalRounds) * 100;
   };
 
   return (
@@ -441,6 +438,7 @@ const styles = StyleSheet.create({
   progressContainer: {
     flex: 1,
     marginRight: SPACING.MD,
+    alignItems: 'center',
   },
 
   progressBackground: {
@@ -460,6 +458,7 @@ const styles = StyleSheet.create({
     fontSize: TYPOGRAPHY.FONT_SIZE.SM,
     color: COLORS.TEXT_SECONDARY,
     fontWeight: TYPOGRAPHY.FONT_WEIGHT.MEDIUM,
+    textAlign: 'center',
   },
 
   gameArea: {
@@ -470,6 +469,7 @@ const styles = StyleSheet.create({
     padding: SPACING.LG,
     borderTopWidth: 1,
     borderTopColor: COLORS.TEXT_TERTIARY,
+    alignItems: 'center',
   },
 
   quickStatsTitle: {
@@ -480,8 +480,10 @@ const styles = StyleSheet.create({
   },
 
   statsRow: {
-    flexDirection: "row",
-    justifyContent: "space-around",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    width: '100%',
   },
 
   statText: {
