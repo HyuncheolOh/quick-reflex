@@ -1,11 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  Animated,
-} from 'react-native';
-import { COLORS, TYPOGRAPHY, SPACING } from '../../constants';
+import React, { useState, useEffect } from "react";
+import { View, Text, StyleSheet, Animated } from "react-native";
+import { COLORS, TYPOGRAPHY, SPACING } from "../../constants";
 
 interface CountdownTimerProps {
   duration: number; // in milliseconds
@@ -32,7 +27,7 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
         setTimeLeft((prev) => {
           const newTime = prev - 1;
           onTick?.(newTime);
-          
+
           // Animate scale
           Animated.sequence([
             Animated.timing(scaleValue, {
@@ -46,7 +41,7 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
               useNativeDriver: true,
             }),
           ]).start();
-          
+
           return newTime;
         });
       }, 1000);
@@ -78,7 +73,9 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
   if (timeLeft <= 0) {
     return (
       <View style={styles.container}>
-        <Animated.Text style={[styles.goText, { transform: [{ scale: scaleValue }] }]}>
+        <Animated.Text
+          style={[styles.goText, { transform: [{ scale: scaleValue }] }]}
+        >
           시작!
         </Animated.Text>
       </View>
@@ -86,7 +83,12 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
   }
 
   return (
-    <View style={styles.container}>
+    <View
+      style={[
+        styles.container,
+        { flex: 1, justifyContent: "center", alignItems: "center" },
+      ]}
+    >
       <Animated.Text
         style={[
           styles.countdownText,
@@ -103,34 +105,34 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     padding: SPACING.XL,
   },
-  
+
   countdownText: {
     fontSize: TYPOGRAPHY.FONT_SIZE.GIANT * 2,
     fontWeight: TYPOGRAPHY.FONT_WEIGHT.EXTRABOLD,
     color: COLORS.TEXT_PRIMARY,
-    textAlign: 'center',
+    textAlign: "center",
   },
-  
+
   urgentText: {
     color: COLORS.ERROR,
   },
-  
+
   goText: {
     fontSize: TYPOGRAPHY.FONT_SIZE.GIANT,
     fontWeight: TYPOGRAPHY.FONT_WEIGHT.EXTRABOLD,
     color: COLORS.SUCCESS,
-    textAlign: 'center',
+    textAlign: "center",
   },
-  
+
   subtitle: {
     fontSize: TYPOGRAPHY.FONT_SIZE.LG,
     fontWeight: TYPOGRAPHY.FONT_WEIGHT.MEDIUM,
     color: COLORS.TEXT_SECONDARY,
     marginTop: SPACING.MD,
-    textAlign: 'center',
+    textAlign: "center",
   },
 });

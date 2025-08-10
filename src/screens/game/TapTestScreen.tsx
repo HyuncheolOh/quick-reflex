@@ -114,7 +114,14 @@ export const TapTestScreen: React.FC<TapTestScreenProps> = ({ navigation }) => {
       false
     );
 
-    setAttempts((prev) => [...prev, timeoutAttempt]);
+    console.log("timeout", timeoutAttempt);
+
+    setAttempts((prev) => {
+      const newAttempts = [...prev, timeoutAttempt];
+      console.log("timeout", newAttempts);
+      return newAttempts;
+    });
+
     setGameState((prev) => ({ ...prev, currentState: GameState.FAILED }));
     setMessage(GAME_MESSAGES.TOO_SLOW);
 
@@ -153,7 +160,7 @@ export const TapTestScreen: React.FC<TapTestScreenProps> = ({ navigation }) => {
       console.log("READY 상태로 전환 시도:", {
         currentState: gameState.currentState,
         timestamp: now,
-        isPaused
+        isPaused,
       });
 
       // READY 상태로 전환
@@ -243,6 +250,7 @@ export const TapTestScreen: React.FC<TapTestScreenProps> = ({ navigation }) => {
         break;
 
       case GameState.GAME_COMPLETE:
+      case GameState.FAILED:
         // Navigate to results
         navigateToResults();
         break;
@@ -250,58 +258,79 @@ export const TapTestScreen: React.FC<TapTestScreenProps> = ({ navigation }) => {
   };
 
   const nextRound = () => {
-    const totalAttempts = attempts.length;
+    setAttempts((currentAttempts) => {
+      const totalAttempts = currentAttempts.length;
+      console.log(
+        "totalAttempts / totalRounds",
+        totalAttempts,
+        gameState.totalRounds
+      );
 
-    if (totalAttempts >= gameState.totalRounds) {
-      completeGame();
-    } else {
-      const newRound = totalAttempts;
+      if (totalAttempts >= gameState.totalRounds) {
+        // 다음 렌더링 사이클에서 completeGame 호출
+        setTimeout(() => {
+          completeGame();
+        }, 0);
+      } else {
+        const newRound = totalAttempts;
 
-      setGameState((prev) => ({
-        ...prev,
-        currentState: GameState.ROUND_COMPLETE,
-        currentRound: newRound,
-      }));
+        setGameState((prev) => ({
+          ...prev,
+          currentState: GameState.ROUND_COMPLETE,
+          currentRound: newRound,
+        }));
 
-      setMessage(`라운드 ${newRound + 1} 준비...`);
+        setMessage(`라운드 ${newRound + 1} 준비...`);
 
-      setTimeout(() => {
-        if (!isPaused) {
-          startRound();
-        }
-      }, GAME_CONFIG.ROUND_DELAY);
-    }
+        setTimeout(() => {
+          if (!isPaused) {
+            startRound();
+          }
+        }, GAME_CONFIG.ROUND_DELAY);
+      }
+
+      return currentAttempts; // attempts 상태는 변경하지 않음
+    });
   };
 
   const completeGame = async () => {
-    const successfulAttempts = attempts.filter((a) => a.isValid).length;
-    const finalState =
-      successfulAttempts === 0 ? GameState.FAILED : GameState.GAME_COMPLETE;
+    setAttempts((currentAttempts) => {
+      const successfulAttempts = currentAttempts.filter(
+        (a) => a.isValid
+      ).length;
+      const finalState =
+        successfulAttempts === 0 ? GameState.FAILED : GameState.GAME_COMPLETE;
 
-    setGameState((prev) => ({
-      ...prev,
-      currentState: finalState,
-    }));
+      setGameState((prev) => ({
+        ...prev,
+        currentState: finalState,
+      }));
 
-    setMessage(GAME_MESSAGES.GAME_COMPLETE);
+      setMessage(GAME_MESSAGES.GAME_COMPLETE);
 
-    try {
-      const gameSession = await GameStorageService.saveGameSession(
-        "TAP_TEST",
-        attempts,
-        true,
-        successfulAttempts === 0
-      );
+      // 비동기 작업을 별도로 처리
+      (async () => {
+        try {
+          const gameSession = await GameStorageService.saveGameSession(
+            "TAP_TEST",
+            currentAttempts,
+            true,
+            successfulAttempts === 0
+          );
 
-      setTimeout(() => {
-        navigateToResults(gameSession);
-      }, 2000);
-    } catch (error) {
-      console.error("Error saving game session:", error);
-      setTimeout(() => {
-        navigateToResults();
-      }, 2000);
-    }
+          setTimeout(() => {
+            navigateToResults(gameSession);
+          }, 2000);
+        } catch (error) {
+          console.error("Error saving game session:", error);
+          setTimeout(() => {
+            navigateToResults();
+          }, 2000);
+        }
+      })();
+
+      return currentAttempts; // attempts 상태는 변경하지 않음
+    });
   };
 
   const navigateToResults = (gameSession?: any) => {
@@ -309,17 +338,20 @@ export const TapTestScreen: React.FC<TapTestScreenProps> = ({ navigation }) => {
       navigation.navigate("Result", { gameSession });
     } else {
       // Create temporary session for navigation
-      const tempSession = {
-        id: "temp",
-        gameType: "TAP_TEST" as const,
-        userId: "temp",
-        timestamp: Date.now(),
-        attempts,
-        statistics: GameLogic.calculateStatistics(attempts),
-        isCompleted: true,
-        isFailed: attempts.every((a) => !a.isValid),
-      };
-      navigation.navigate("Result", { gameSession: tempSession });
+      setAttempts((currentAttempts) => {
+        const tempSession = {
+          id: "temp",
+          gameType: "TAP_TEST" as const,
+          userId: "temp",
+          timestamp: Date.now(),
+          attempts: currentAttempts,
+          statistics: GameLogic.calculateStatistics(currentAttempts),
+          isCompleted: true,
+          isFailed: currentAttempts.every((a) => !a.isValid),
+        };
+        navigation.navigate("Result", { gameSession: tempSession });
+        return currentAttempts;
+      });
     }
   };
 
@@ -331,6 +363,7 @@ export const TapTestScreen: React.FC<TapTestScreenProps> = ({ navigation }) => {
   };
 
   const getProgressPercentage = () => {
+    // attempts 상태가 업데이트되면 자동으로 재계산됨
     return (attempts.length / gameState.totalRounds) * 100;
   };
 
@@ -348,8 +381,7 @@ export const TapTestScreen: React.FC<TapTestScreenProps> = ({ navigation }) => {
             />
           </View>
           <Text style={styles.progressText}>
-            {attempts.filter((attempt) => attempt.isValid).length}/
-            {gameState.totalRounds} 성공
+            {attempts.length}/{gameState.totalRounds}
           </Text>
         </View>
 
@@ -438,7 +470,7 @@ const styles = StyleSheet.create({
   progressContainer: {
     flex: 1,
     marginRight: SPACING.MD,
-    alignItems: 'center',
+    alignItems: "center",
   },
 
   progressBackground: {
@@ -458,7 +490,7 @@ const styles = StyleSheet.create({
     fontSize: TYPOGRAPHY.FONT_SIZE.SM,
     color: COLORS.TEXT_SECONDARY,
     fontWeight: TYPOGRAPHY.FONT_WEIGHT.MEDIUM,
-    textAlign: 'center',
+    textAlign: "center",
   },
 
   gameArea: {
@@ -469,7 +501,7 @@ const styles = StyleSheet.create({
     padding: SPACING.LG,
     borderTopWidth: 1,
     borderTopColor: COLORS.TEXT_TERTIARY,
-    alignItems: 'center',
+    alignItems: "center",
   },
 
   quickStatsTitle: {
@@ -480,10 +512,10 @@ const styles = StyleSheet.create({
   },
 
   statsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    width: '100%',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    width: "100%",
   },
 
   statText: {
