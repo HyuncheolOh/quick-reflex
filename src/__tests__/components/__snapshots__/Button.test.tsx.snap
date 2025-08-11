@@ -1,0 +1,151 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`Button Snapshot Tests should match snapshot for disabled button 1`] = `
+<TouchableOpacity
+  activeOpacity={0.8}
+  disabled={true}
+  onPress={[MockFunction]}
+  style={
+    [
+      {
+        "alignItems": "center",
+        "backgroundColor": "#007AFF",
+        "borderRadius": 12,
+        "elevation": 3,
+        "justifyContent": "center",
+        "minHeight": 44,
+        "paddingHorizontal": 24,
+        "paddingVertical": 16,
+        "shadowColor": "#000",
+        "shadowOffset": {
+          "height": 1,
+          "width": 0,
+        },
+        "shadowOpacity": 0.22,
+        "shadowRadius": 2.22,
+      },
+      {
+        "opacity": 0.6,
+      },
+      undefined,
+    ]
+  }
+>
+  <Text
+    style={
+      [
+        {
+          "color": "#FFFFFF",
+          "fontSize": 16,
+          "fontWeight": "600",
+          "textAlign": "center",
+        },
+        {
+          "opacity": 0.6,
+        },
+        undefined,
+      ]
+    }
+  >
+    Test Button
+  </Text>
+</TouchableOpacity>
+`;
+
+exports[`Button Snapshot Tests should match snapshot for ghost button 1`] = `
+<TouchableOpacity
+  activeOpacity={0.8}
+  disabled={false}
+  onPress={[MockFunction]}
+  style={
+    [
+      {
+        "alignItems": "center",
+        "backgroundColor": "transparent",
+        "borderColor": "#007AFF",
+        "borderRadius": 12,
+        "borderWidth": 1,
+        "elevation": 3,
+        "justifyContent": "center",
+        "minHeight": 44,
+        "paddingHorizontal": 24,
+        "paddingVertical": 16,
+        "shadowColor": "#000",
+        "shadowOffset": {
+          "height": 1,
+          "width": 0,
+        },
+        "shadowOpacity": 0.22,
+        "shadowRadius": 2.22,
+      },
+      false,
+      undefined,
+    ]
+  }
+>
+  <Text
+    style={
+      [
+        {
+          "color": "#007AFF",
+          "fontSize": 16,
+          "fontWeight": "600",
+          "textAlign": "center",
+        },
+        false,
+        undefined,
+      ]
+    }
+  >
+    Test Button
+  </Text>
+</TouchableOpacity>
+`;
+
+exports[`Button Snapshot Tests should match snapshot for primary button 1`] = `
+<TouchableOpacity
+  activeOpacity={0.8}
+  disabled={false}
+  onPress={[MockFunction]}
+  style={
+    [
+      {
+        "alignItems": "center",
+        "backgroundColor": "#007AFF",
+        "borderRadius": 12,
+        "elevation": 3,
+        "justifyContent": "center",
+        "minHeight": 44,
+        "paddingHorizontal": 24,
+        "paddingVertical": 16,
+        "shadowColor": "#000",
+        "shadowOffset": {
+          "height": 1,
+          "width": 0,
+        },
+        "shadowOpacity": 0.22,
+        "shadowRadius": 2.22,
+      },
+      false,
+      undefined,
+    ]
+  }
+>
+  <Text
+    style={
+      [
+        {
+          "color": "#FFFFFF",
+          "fontSize": 16,
+          "fontWeight": "600",
+          "textAlign": "center",
+        },
+        false,
+        undefined,
+      ]
+    }
+  >
+    Test Button
+  </Text>
+</TouchableOpacity>
+`;

@@ -148,9 +148,27 @@ Each reaction time test follows this pattern:
 - Use semantic component and variable naming
 - Add comments for complex game logic only
 
-### Testing Considerations
+### Testing Requirements
+- **Mandatory Test Code**: All new features, components, and utility functions must have accompanying test code
+- **Test-First Development**: Prefer TDD (Test-Driven Development) approach when possible
+- **Coverage Maintenance**: Maintain 100% test coverage for core business logic
+- **Documentation Updates**: Always update `TESTING.md` when adding new tests
 - Test on both iOS and Android platforms
-- Verify theme switching works correctly
+- Verify theme switching works correctly  
 - Test language switching functionality
 - Validate timing accuracy across devices
 - Test edge cases (early taps, timeouts, interruptions)
+
+### Testing Guidelines
+- **Component Tests**: All UI components require rendering, interaction, and state change tests
+- **Unit Tests**: All utility functions, services, and hooks must have unit tests
+- **Integration Tests**: Test interactions between contexts and components
+- **Mocking Strategy**: Properly mock external dependencies and React Native modules
+- **Snapshot Tests**: Use snapshot tests to prevent visual regression in UI components
+
+### Test Documentation Updates
+When adding new tests, update the following in `TESTING.md`:
+- Update test count and statistics
+- Add detailed descriptions for new test categories
+- Update test structure diagrams
+- Document new test patterns or best practices

@@ -1,0 +1,104 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`Card Snapshot Tests should match snapshot for default card 1`] = `
+<View
+  style={
+    [
+      {
+        "borderRadius": 12,
+      },
+      {
+        "backgroundColor": "#FFFFFF",
+      },
+      {
+        "padding": 16,
+      },
+      undefined,
+    ]
+  }
+>
+  <Text>
+    Card Content
+  </Text>
+</View>
+`;
+
+exports[`Card Snapshot Tests should match snapshot for elevated card 1`] = `
+<View
+  style={
+    [
+      {
+        "borderRadius": 12,
+      },
+      {
+        "backgroundColor": "#FFFFFF",
+        "elevation": 5,
+        "shadowColor": "#000",
+        "shadowOffset": {
+          "height": 2,
+          "width": 0,
+        },
+        "shadowOpacity": 0.25,
+        "shadowRadius": 3.84,
+      },
+      {
+        "padding": 16,
+      },
+      undefined,
+    ]
+  }
+>
+  <Text>
+    Card Content
+  </Text>
+</View>
+`;
+
+exports[`Card Snapshot Tests should match snapshot for outlined card 1`] = `
+<View
+  style={
+    [
+      {
+        "borderRadius": 12,
+      },
+      {
+        "backgroundColor": "transparent",
+        "borderColor": "#8E8E93",
+        "borderWidth": 1,
+      },
+      {
+        "padding": 16,
+      },
+      undefined,
+    ]
+  }
+>
+  <Text>
+    Card Content
+  </Text>
+</View>
+`;
+
+exports[`Card Snapshot Tests should match snapshot for touchable card 1`] = `
+<TouchableOpacity
+  activeOpacity={0.8}
+  style={
+    [
+      {
+        "borderRadius": 12,
+      },
+      {
+        "backgroundColor": "#FFFFFF",
+      },
+      {
+        "padding": 16,
+      },
+      undefined,
+    ]
+  }
+>
+  <Text>
+    Card Content
+  </Text>
+</TouchableOpacity>
+`;
