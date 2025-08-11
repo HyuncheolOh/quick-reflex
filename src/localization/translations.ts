@@ -94,10 +94,12 @@ export const ko = {
     shareResult: '결과 공유',
     goHome: '홈으로',
     comparison: '이전 기록과 비교',
-    insights: '분석 및 인사이트',
     improvement: (time: string) => `최고 기록이 ${time} 향상됐어요!`,
     averageImprovement: (time: string) => `평균 반응시간이 ${time} 빨라졌어요!`,
     averageDecline: (time: string) => `평균 반응시간이 ${time} 느려졌어요.`,
+    fastestReaction: '가장 빠른 반응',
+    slowestReaction: '가장 느린 반응',
+    successCount: (count: number) => `${count}번 성공`,
   },
 
   // Statistics
@@ -151,6 +153,10 @@ export const ko = {
       title: '데이터 초기화',
       message: '모든 게임 기록과 설정이 삭제됩니다.\n정말로 초기화하시겠습니까?',
       confirm: '초기화',
+      cancel: '취소',
+    },
+    confirmModal: {
+      confirm: '확인',
       cancel: '취소',
     },
   },
@@ -321,10 +327,12 @@ export const en = {
     shareResult: 'Share Result',
     goHome: 'Go Home',
     comparison: 'Comparison with Previous Records',
-    insights: 'Analysis & Insights',
     improvement: (time: string) => `Best record improved by ${time}!`,
     averageImprovement: (time: string) => `Average reaction time improved by ${time}!`,
     averageDecline: (time: string) => `Average reaction time slowed by ${time}.`,
+    fastestReaction: 'Fastest reaction',
+    slowestReaction: 'Slowest reaction',
+    successCount: (count: number) => `${count} successes`,
   },
 
   // Statistics
@@ -378,6 +386,10 @@ export const en = {
       title: 'Reset Data',
       message: 'All game records and settings will be deleted.\nAre you sure you want to reset?',
       confirm: 'Reset',
+      cancel: 'Cancel',
+    },
+    confirmModal: {
+      confirm: 'OK',
       cancel: 'Cancel',
     },
   },

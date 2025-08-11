@@ -89,14 +89,14 @@ export const GameResult: React.FC<GameResultProps> = ({
         {renderStatCard(
           t.results.bestTime,
           statistics.validAttempts > 0 ? GameLogic.formatTime(statistics.bestTime) : '-',
-          '가장 빠른 반응',
+          t.results.fastestReaction,
           statistics.validAttempts > 0 ? colors.SUCCESS : colors.TEXT_SECONDARY
         )}
         
         {renderStatCard(
           t.results.averageTime,
           statistics.validAttempts > 0 ? GameLogic.formatTime(statistics.averageTime) : '-',
-          `${statistics.validAttempts}번 성공`,
+          t.results.successCount(statistics.validAttempts),
           statistics.validAttempts > 0 ? colors.INFO : colors.TEXT_SECONDARY
         )}
         
@@ -121,7 +121,7 @@ export const GameResult: React.FC<GameResultProps> = ({
         {statistics.worstTime > 0 && statistics.validAttempts > 1 && renderStatCard(
           t.results.worstTime,
           GameLogic.formatTime(statistics.worstTime),
-          '가장 느린 반응',
+          t.results.slowestReaction,
           colors.TEXT_SECONDARY
         )}
       </View>

@@ -116,16 +116,16 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({ navigation, route })
     if (!gameSession.isFailed && gameSession.statistics.validAttempts > 0) {
       if (personalBest && gameSession.statistics.bestTime < personalBest) {
         const improvement = personalBest - gameSession.statistics.bestTime;
-        improvements.push(`최고 기록이 ${GameLogic.formatTime(improvement)} 향상됐어요!`);
+        improvements.push(t.results.improvement(GameLogic.formatTime(improvement)));
       }
 
       if (previousAverage && previousAverage > 0 && gameSession.statistics.averageTime > 0) {
         const diff = previousAverage - gameSession.statistics.averageTime;
         if (Math.abs(diff) > 10) { // Only show if significant difference
           if (diff > 0) {
-            improvements.push(`평균 반응시간이 ${GameLogic.formatTime(diff)} 빨라졌어요!`);
+            improvements.push(t.results.averageImprovement(GameLogic.formatTime(diff)));
           } else {
-            declines.push(`평균 반응시간이 ${GameLogic.formatTime(Math.abs(diff))} 느려졌어요.`);
+            declines.push(t.results.averageDecline(GameLogic.formatTime(Math.abs(diff))));
           }
         }
       }
@@ -137,7 +137,7 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({ navigation, route })
 
     return (
       <Card style={styles.comparisonCard}>
-        <Text style={[styles.comparisonTitle, { color: colors.TEXT_PRIMARY }]}>이전 기록과 비교</Text>
+        <Text style={[styles.comparisonTitle, { color: colors.TEXT_PRIMARY }]}>{t.results.comparison}</Text>
         
         {improvements.map((improvement, index) => (
           <View key={`improvement-${index}`} style={styles.comparisonItem}>

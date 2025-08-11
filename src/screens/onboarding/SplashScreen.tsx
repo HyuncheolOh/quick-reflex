@@ -10,6 +10,7 @@ import { TYPOGRAPHY, SPACING } from '../../constants';
 import { OnboardingStackParamList } from '../../types';
 import { LocalStorageService } from '../../services/storage';
 import { useThemedColors } from '../../hooks';
+import { useLocalization } from '../../contexts';
 
 type SplashScreenProps = {
   navigation: StackNavigationProp<OnboardingStackParamList, 'Splash'>;
@@ -17,6 +18,7 @@ type SplashScreenProps = {
 
 export const SplashScreen: React.FC<SplashScreenProps> = ({ navigation }) => {
   const colors = useThemedColors();
+  const { t } = useLocalization();
   const fadeAnim = new Animated.Value(0);
   const scaleAnim = new Animated.Value(0.8);
 
@@ -70,7 +72,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ navigation }) => {
       >
         <Text style={styles.logo}>⚡</Text>
         <Text style={[styles.title, { color: colors.TEXT_PRIMARY }]}>QuickReflex</Text>
-        <Text style={[styles.subtitle, { color: colors.TEXT_SECONDARY }]}>순발력 측정 게임</Text>
+        <Text style={[styles.subtitle, { color: colors.TEXT_SECONDARY }]}>{t.app.subtitle}</Text>
       </Animated.View>
       
       <Animated.View style={[styles.footer, { opacity: fadeAnim }]}>

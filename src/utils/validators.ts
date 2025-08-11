@@ -12,21 +12,21 @@ export class Validators {
     error?: string;
   } {
     if (!nickname || nickname.trim().length === 0) {
-      return { isValid: false, error: '닉네임을 입력해주세요' };
+      return { isValid: false, error: 'validation.nicknameRequired' };
     }
 
     if (nickname.trim().length < 2) {
-      return { isValid: false, error: '닉네임은 2자 이상이어야 합니다' };
+      return { isValid: false, error: 'validation.nicknameTooShort' };
     }
 
     if (nickname.trim().length > 20) {
-      return { isValid: false, error: '닉네임은 20자 이하여야 합니다' };
+      return { isValid: false, error: 'validation.nicknameTooLong' };
     }
 
     // Check for inappropriate characters
     const invalidChars = /[<>\"'&]/;
     if (invalidChars.test(nickname)) {
-      return { isValid: false, error: '특수문자는 사용할 수 없습니다' };
+      return { isValid: false, error: 'validation.nicknameInvalidChars' };
     }
 
     return { isValid: true };
@@ -39,7 +39,7 @@ export class Validators {
     const errors: string[] = [];
 
     if (!profile.id) {
-      errors.push('사용자 ID가 필요합니다');
+      errors.push('validation.userIdRequired');
     }
 
     if (profile.nickname) {

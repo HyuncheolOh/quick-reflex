@@ -73,10 +73,10 @@ export const GameListScreen: React.FC<GameListScreenProps> = ({ navigation }) =>
       // Reload data
       await loadUserData();
       
-      Alert.alert('완료', '모든 데이터가 초기화되었습니다.');
+      Alert.alert(t.common.success, t.messages.dataResetComplete);
     } catch (error) {
       console.error('Error resetting data:', error);
-      Alert.alert('오류', '데이터 초기화 중 오류가 발생했습니다.');
+      Alert.alert(t.common.error, t.messages.dataResetError);
     }
   };
 

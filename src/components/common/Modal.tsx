@@ -10,6 +10,7 @@ import {
 import { SPACING, TYPOGRAPHY, BORDER_RADIUS } from '../../constants';
 import { Button } from './Button';
 import { useThemedColors } from '../../hooks';
+import { useLocalization } from '../../contexts';
 
 const { width, height } = Dimensions.get('window');
 
@@ -81,24 +82,28 @@ export const ConfirmModal: React.FC<{
   onConfirm,
   title,
   message,
-  confirmText = '확인',
-  cancelText = '취소',
+  confirmText,
+  cancelText,
   variant = 'primary',
 }) => {
   const colors = useThemedColors();
+  const { t } = useLocalization();
+  
+  const finalConfirmText = confirmText || t.modals.confirmModal.confirm;
+  const finalCancelText = cancelText || t.modals.confirmModal.cancel;
   return (
     <Modal visible={visible} onClose={onClose} title={title} showCloseButton={false}>
       <Text style={[styles.message, { color: colors.TEXT_PRIMARY }]}>{message}</Text>
       
       <View style={styles.buttonContainer}>
         <Button
-          title={cancelText}
+          title={finalCancelText}
           onPress={onClose}
           variant="ghost"
           style={styles.button}
         />
         <Button
-          title={confirmText}
+          title={finalConfirmText}
           onPress={() => {
             onConfirm();
             onClose();

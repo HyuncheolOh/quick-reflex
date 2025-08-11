@@ -60,7 +60,7 @@ export const TapTestScreen: React.FC<TapTestScreenProps> = ({ navigation }) => {
   }, [t]);
 
   useEffect(() => {
-    // 컴포넌트가 언마운트될 때 타이머를 정리합니다.
+    // Clean up timers when component unmounts
     return () => {
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
@@ -153,28 +153,28 @@ export const TapTestScreen: React.FC<TapTestScreenProps> = ({ navigation }) => {
 
     setMessage(t.game.waitForGreen);
 
-    // 먼저 이전 타이머를 모두 클리어
+    // Clear previous timers first
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     }
 
-    // WAITING -> READY로 전환하는 타이머
+    // Timer to switch from WAITING to READY
     timeoutRef.current = setTimeout(() => {
       if (isPaused) {
-        console.log("타이머 중단: 게임이 일시정지됨");
+        console.log('Timer interrupted: Game is paused');
         return;
       }
 
       const now = Date.now();
-      console.log("READY 상태로 전환 시도:", {
+      console.log('Attempting to switch to READY state:', {
         currentState: gameState.currentState,
         timestamp: now,
         isPaused,
       });
 
-      // READY 상태로 전환
+      // Switch to READY state
       setGameState((prev) => {
-        console.log("상태 업데이트:", prev.currentState, "->", GameState.READY);
+        console.log('State update:', prev.currentState, '->', GameState.READY);
         return {
           ...prev,
           currentState: GameState.READY,
@@ -182,15 +182,15 @@ export const TapTestScreen: React.FC<TapTestScreenProps> = ({ navigation }) => {
         };
       });
 
-      console.log("메시지 변경:", t.game.tapNow);
+      console.log('Message changed:', t.game.tapNow);
       setMessage(t.game.tapNow);
 
-      // READY 상태에서 반응 대기 타이머
+      // Timer waiting for reaction in READY state
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
       }
       timeoutRef.current = setTimeout(() => {
-        console.log("타임아웃 발생 - 게임 종료");
+        console.log('Timeout occurred - Game ended');
         handleTimeout();
       }, GAME_CONFIG.READY_TIMEOUT);
     }, delay);
@@ -270,13 +270,13 @@ export const TapTestScreen: React.FC<TapTestScreenProps> = ({ navigation }) => {
     setAttempts((currentAttempts) => {
       const totalAttempts = currentAttempts.length;
       console.log(
-        "totalAttempts / totalRounds",
+        'totalAttempts / totalRounds',
         totalAttempts,
         gameState.totalRounds
       );
 
       if (totalAttempts >= gameState.totalRounds) {
-        // 다음 렌더링 사이클에서 completeGame 호출
+        // Call completeGame in the next render cycle
         setTimeout(() => {
           completeGame();
         }, 0);
@@ -298,7 +298,7 @@ export const TapTestScreen: React.FC<TapTestScreenProps> = ({ navigation }) => {
         }, GAME_CONFIG.ROUND_DELAY);
       }
 
-      return currentAttempts; // attempts 상태는 변경하지 않음
+      return currentAttempts; // Don't modify attempts state
     });
   };
 
@@ -317,7 +317,7 @@ export const TapTestScreen: React.FC<TapTestScreenProps> = ({ navigation }) => {
 
       setMessage(t.game.gameComplete);
 
-      // 비동기 작업을 별도로 처리
+      // Handle async operations separately
       (async () => {
         try {
           const gameSession = await GameStorageService.saveGameSession(
@@ -331,14 +331,14 @@ export const TapTestScreen: React.FC<TapTestScreenProps> = ({ navigation }) => {
             navigateToResults(gameSession);
           }, 2000);
         } catch (error) {
-          console.error("Error saving game session:", error);
+          console.error('Error saving game session:', error);
           setTimeout(() => {
             navigateToResults();
           }, 2000);
         }
       })();
 
-      return currentAttempts; // attempts 상태는 변경하지 않음
+      return currentAttempts; // Don't modify attempts state
     });
   };
 
@@ -390,7 +390,7 @@ export const TapTestScreen: React.FC<TapTestScreenProps> = ({ navigation }) => {
       // Navigate to results with the stopped game session
       navigation.navigate("Result", { gameSession });
     } catch (error) {
-      console.error("Error saving incomplete game session:", error);
+      console.error('Error saving incomplete game session:', error);
       // Create temporary session for navigation if save fails
       const tempSession = {
         id: "temp",
@@ -407,7 +407,7 @@ export const TapTestScreen: React.FC<TapTestScreenProps> = ({ navigation }) => {
   };
 
   const getProgressPercentage = () => {
-    // attempts 상태가 업데이트되면 자동으로 재계산됨
+    // Automatically recalculated when attempts state is updated
     return (attempts.length / gameState.totalRounds) * 100;
   };
 
