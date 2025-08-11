@@ -7,8 +7,9 @@ import {
   TouchableOpacity,
   Text,
 } from 'react-native';
-import { COLORS, SPACING, TYPOGRAPHY, BORDER_RADIUS } from '../../constants';
+import { SPACING, TYPOGRAPHY, BORDER_RADIUS } from '../../constants';
 import { Button } from './Button';
+import { useThemedColors } from '../../hooks';
 
 const { width, height } = Dimensions.get('window');
 
@@ -29,6 +30,7 @@ export const Modal: React.FC<ModalProps> = ({
   showCloseButton = true,
   animationType = 'fade',
 }) => {
+  const colors = useThemedColors();
   return (
     <RNModal
       visible={visible}
@@ -43,13 +45,13 @@ export const Modal: React.FC<ModalProps> = ({
           onPress={onClose}
         />
         
-        <View style={styles.container}>
+        <View style={[styles.container, { backgroundColor: colors.SURFACE }]}>
           {title && (
-            <View style={styles.header}>
-              <Text style={styles.title}>{title}</Text>
+            <View style={[styles.header, { borderBottomColor: colors.TEXT_TERTIARY }]}>
+              <Text style={[styles.title, { color: colors.TEXT_PRIMARY }]}>{title}</Text>
               {showCloseButton && (
                 <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-                  <Text style={styles.closeButtonText}>✕</Text>
+                  <Text style={[styles.closeButtonText, { color: colors.TEXT_SECONDARY }]}>✕</Text>
                 </TouchableOpacity>
               )}
             </View>
@@ -83,9 +85,10 @@ export const ConfirmModal: React.FC<{
   cancelText = '취소',
   variant = 'primary',
 }) => {
+  const colors = useThemedColors();
   return (
     <Modal visible={visible} onClose={onClose} title={title} showCloseButton={false}>
-      <Text style={styles.message}>{message}</Text>
+      <Text style={[styles.message, { color: colors.TEXT_PRIMARY }]}>{message}</Text>
       
       <View style={styles.buttonContainer}>
         <Button
@@ -125,7 +128,6 @@ const styles = StyleSheet.create({
   },
   
   container: {
-    backgroundColor: COLORS.SURFACE,
     borderRadius: BORDER_RADIUS.XL,
     maxWidth: width - SPACING.XL * 2,
     maxHeight: height - SPACING.XXL * 2,
@@ -140,13 +142,11 @@ const styles = StyleSheet.create({
     paddingTop: SPACING.LG,
     paddingBottom: SPACING.MD,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.TEXT_TERTIARY,
   },
   
   title: {
     fontSize: TYPOGRAPHY.FONT_SIZE.LG,
     fontWeight: TYPOGRAPHY.FONT_WEIGHT.BOLD,
-    color: COLORS.TEXT_PRIMARY,
     flex: 1,
   },
   
@@ -157,7 +157,6 @@ const styles = StyleSheet.create({
   
   closeButtonText: {
     fontSize: TYPOGRAPHY.FONT_SIZE.LG,
-    color: COLORS.TEXT_SECONDARY,
   },
   
   content: {
@@ -166,7 +165,6 @@ const styles = StyleSheet.create({
   
   message: {
     fontSize: TYPOGRAPHY.FONT_SIZE.MD,
-    color: COLORS.TEXT_PRIMARY,
     textAlign: 'center',
     marginBottom: SPACING.LG,
     lineHeight: 22,

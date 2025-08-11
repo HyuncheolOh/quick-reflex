@@ -17,4 +17,5 @@ export type MainStackParamList = {
   Result: {
     gameSession: GameSession;
   };
+  Settings: undefined;
 };

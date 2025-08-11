@@ -10,7 +10,7 @@ export class StatisticsUtils {
     }
 
     const recentSessions = sessions
-      .filter(s => s.isCompleted && !s.isFailed)
+      .filter(s => s.isCompleted && !s.isFailed && s.statistics.averageTime > 0)
       .slice(0, 5) // Last 5 games
       .reverse(); // Oldest to newest
 
@@ -21,7 +21,7 @@ export class StatisticsUtils {
     const firstAverage = recentSessions[0].statistics.averageTime;
     const lastAverage = recentSessions[recentSessions.length - 1].statistics.averageTime;
 
-    if (firstAverage === 0) {
+    if (firstAverage === 0 || lastAverage === 0) {
       return { trend: 'STABLE', percentage: 0 };
     }
 
@@ -99,12 +99,12 @@ export class StatisticsUtils {
     };
   }
 
-  static getProgressInsights(sessions: GameSession[]): string[] {
-    const insights: string[] = [];
+  static getProgressInsights(sessions: GameSession[]): Array<{ key: string; params: any }> {
+    const insights: Array<{ key: string; params: any }> = [];
     const completedSessions = sessions.filter(s => s.isCompleted && !s.isFailed);
 
     if (completedSessions.length === 0) {
-      return ['더 많은 게임을 플레이해보세요!'];
+      return [{ key: 'playMore', params: null }];
     }
 
     const trend = this.calculateImprovementTrend(completedSessions);
@@ -113,26 +113,28 @@ export class StatisticsUtils {
 
     // Trend insights
     if (trend.trend === 'IMPROVING') {
-      insights.push(`최근 ${trend.percentage}% 향상되었습니다! 🎉`);
+      insights.push({ key: 'improved', params: { percentage: trend.percentage } });
     } else if (trend.trend === 'DECLINING') {
-      insights.push(`최근 성과가 ${trend.percentage}% 하락했습니다. 더 집중해보세요! 💪`);
+      insights.push({ key: 'declined', params: { percentage: trend.percentage } });
     } else {
-      insights.push('안정적인 성과를 유지하고 있습니다 👍');
+      insights.push({ key: 'stable', params: null });
     }
 
     // Consistency insights
     if (consistency.rating === 'VERY_CONSISTENT') {
-      insights.push('매우 일관된 반응속도를 보입니다! 🎯');
+      insights.push({ key: 'consistent', params: null });
     } else if (consistency.rating === 'INCONSISTENT') {
-      insights.push('반응속도의 일관성을 향상시켜보세요 📈');
+      insights.push({ key: 'inconsistent', params: null });
     }
 
     // Performance insights
     const avgTime = lastSession.statistics.averageTime;
-    if (avgTime < 250) {
-      insights.push('뛰어난 반응속도를 가지고 있습니다! ⚡');
-    } else if (avgTime > 500) {
-      insights.push('더 빠른 반응을 위해 연습해보세요! 🏃‍♂️');
+    if (avgTime > 0) {
+      if (avgTime < 250) {
+        insights.push({ key: 'excellent', params: null });
+      } else if (avgTime > 500) {
+        insights.push({ key: 'needsPractice', params: null });
+      }
     }
 
     return insights;

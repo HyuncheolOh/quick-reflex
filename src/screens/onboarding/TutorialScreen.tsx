@@ -8,8 +8,10 @@ import {
 } from 'react-native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { Button } from '../../components/common';
-import { COLORS, SPACING, TYPOGRAPHY, GAME_COLORS, BORDER_RADIUS } from '../../constants';
+import { SPACING, TYPOGRAPHY, GAME_COLORS, BORDER_RADIUS } from '../../constants';
 import { OnboardingStackParamList } from '../../types';
+import { useThemedColors } from '../../hooks';
+import { useLocalization } from '../../contexts';
 
 const { width } = Dimensions.get('window');
 
@@ -18,23 +20,25 @@ type TutorialScreenProps = {
 };
 
 export const TutorialScreen: React.FC<TutorialScreenProps> = ({ navigation }) => {
+  const colors = useThemedColors();
+  const { t } = useLocalization();
   const [currentStep, setCurrentStep] = useState(0);
   const colorAnim = new Animated.Value(0);
 
   const steps = [
     {
-      title: '🎯 게임 방법',
-      description: '화면이 빨간색에서 초록색으로\n바뀌는 순간을 기다리세요',
+      title: t.tutorial.steps[1].title,
+      description: t.tutorial.steps[1].description,
       demo: 'waiting',
     },
     {
-      title: '⚡ 빠른 반응',
-      description: '초록색으로 바뀌면\n즉시 화면을 탭하세요!',
+      title: t.tutorial.steps[2].title,
+      description: t.tutorial.steps[2].description,
       demo: 'ready',
     },
     {
-      title: '📊 결과 측정',
-      description: '5번의 시도 후\n평균 반응시간을 확인하세요',
+      title: t.tutorial.steps[3].title,
+      description: t.tutorial.steps[3].description,
       demo: 'result',
     },
   ];
@@ -71,7 +75,7 @@ export const TutorialScreen: React.FC<TutorialScreenProps> = ({ navigation }) =>
     } else if (step.demo === 'ready') {
       return GAME_COLORS.READY;
     }
-    return COLORS.PRIMARY;
+    return colors.PRIMARY;
   };
 
   const handleNext = () => {
@@ -89,7 +93,7 @@ export const TutorialScreen: React.FC<TutorialScreenProps> = ({ navigation }) =>
   const currentStepData = steps[currentStep];
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.BACKGROUND }]}>
       {/* Progress indicator */}
       <View style={styles.progressContainer}>
         {steps.map((_, index) => (
@@ -97,7 +101,7 @@ export const TutorialScreen: React.FC<TutorialScreenProps> = ({ navigation }) =>
             key={index}
             style={[
               styles.progressDot,
-              index <= currentStep && styles.progressDotActive,
+              { backgroundColor: index <= currentStep ? colors.PRIMARY : colors.TEXT_TERTIARY },
             ]}
           />
         ))}
@@ -105,8 +109,8 @@ export const TutorialScreen: React.FC<TutorialScreenProps> = ({ navigation }) =>
 
       {/* Content */}
       <View style={styles.content}>
-        <Text style={styles.title}>{currentStepData.title}</Text>
-        <Text style={styles.description}>{currentStepData.description}</Text>
+        <Text style={[styles.title, { color: colors.TEXT_PRIMARY }]}>{currentStepData.title}</Text>
+        <Text style={[styles.description, { color: colors.TEXT_SECONDARY }]}>{currentStepData.description}</Text>
 
         {/* Demo visualization */}
         <View style={styles.demoContainer}>
@@ -117,15 +121,15 @@ export const TutorialScreen: React.FC<TutorialScreenProps> = ({ navigation }) =>
                 { backgroundColor: getDemoColor() },
               ]}
             >
-              <Text style={styles.demoText}>
-                {currentStepData.demo === 'waiting' ? '대기 중...' : '지금 탭!'}
+              <Text style={[styles.demoText, { color: colors.TEXT_PRIMARY }]}>
+                {currentStepData.demo === 'waiting' ? t.tutorial.demo.waiting : t.tutorial.demo.tapNow}
               </Text>
             </Animated.View>
           ) : (
-            <View style={styles.resultDemo}>
-              <Text style={styles.resultTitle}>결과 예시</Text>
-              <Text style={styles.resultValue}>평균: 245ms</Text>
-              <Text style={styles.resultSubtext}>훌륭한 반응속도!</Text>
+            <View style={[styles.resultDemo, { backgroundColor: colors.SURFACE }]}>
+              <Text style={[styles.resultTitle, { color: colors.TEXT_SECONDARY }]}>{t.tutorial.demo.resultExample}</Text>
+              <Text style={[styles.resultValue, { color: colors.SUCCESS }]}>{t.tutorial.demo.averageTime}</Text>
+              <Text style={[styles.resultSubtext, { color: colors.TEXT_SECONDARY }]}>{t.tutorial.demo.excellentResponse}</Text>
             </View>
           )}
         </View>
@@ -134,13 +138,13 @@ export const TutorialScreen: React.FC<TutorialScreenProps> = ({ navigation }) =>
       {/* Navigation buttons */}
       <View style={styles.buttonContainer}>
         <Button
-          title="건너뛰기"
+          title={t.tutorial.skip}
           onPress={handleSkip}
           variant="ghost"
           style={styles.skipButton}
         />
         <Button
-          title={currentStep === steps.length - 1 ? '시작하기' : '다음'}
+          title={currentStep === steps.length - 1 ? t.tutorial.start : t.common.next}
           onPress={handleNext}
           style={styles.nextButton}
         />
@@ -152,7 +156,6 @@ export const TutorialScreen: React.FC<TutorialScreenProps> = ({ navigation }) =>
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.BACKGROUND,
     paddingHorizontal: SPACING.LG,
     paddingVertical: SPACING.XXL,
   },
@@ -169,11 +172,6 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: COLORS.TEXT_TERTIARY,
-  },
-  
-  progressDotActive: {
-    backgroundColor: COLORS.PRIMARY,
   },
   
   content: {
@@ -185,14 +183,12 @@ const styles = StyleSheet.create({
   title: {
     fontSize: TYPOGRAPHY.FONT_SIZE.XXXL,
     fontWeight: TYPOGRAPHY.FONT_WEIGHT.BOLD,
-    color: COLORS.TEXT_PRIMARY,
     textAlign: 'center',
     marginBottom: SPACING.LG,
   },
   
   description: {
     fontSize: TYPOGRAPHY.FONT_SIZE.LG,
-    color: COLORS.TEXT_SECONDARY,
     textAlign: 'center',
     lineHeight: 28,
     marginBottom: SPACING.XXL,
@@ -217,34 +213,29 @@ const styles = StyleSheet.create({
   demoText: {
     fontSize: TYPOGRAPHY.FONT_SIZE.LG,
     fontWeight: TYPOGRAPHY.FONT_WEIGHT.BOLD,
-    color: COLORS.TEXT_PRIMARY,
     textAlign: 'center',
   },
   
   resultDemo: {
     alignItems: 'center',
     padding: SPACING.XL,
-    backgroundColor: COLORS.SURFACE,
     borderRadius: BORDER_RADIUS.XL,
     minWidth: 200,
   },
   
   resultTitle: {
     fontSize: TYPOGRAPHY.FONT_SIZE.MD,
-    color: COLORS.TEXT_SECONDARY,
     marginBottom: SPACING.SM,
   },
   
   resultValue: {
     fontSize: TYPOGRAPHY.FONT_SIZE.XXXL,
     fontWeight: TYPOGRAPHY.FONT_WEIGHT.BOLD,
-    color: COLORS.SUCCESS,
     marginBottom: SPACING.XS,
   },
   
   resultSubtext: {
     fontSize: TYPOGRAPHY.FONT_SIZE.SM,
-    color: COLORS.TEXT_SECONDARY,
   },
   
   buttonContainer: {

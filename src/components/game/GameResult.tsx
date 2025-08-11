@@ -6,9 +6,11 @@ import {
   ScrollView,
 } from 'react-native';
 import { Card } from '../common';
-import { COLORS, SPACING, TYPOGRAPHY, BORDER_RADIUS } from '../../constants';
+import { SPACING, TYPOGRAPHY, BORDER_RADIUS } from '../../constants';
 import { GameStatistics, ReactionAttempt } from '../../types';
 import { GameLogic } from '../../utils';
+import { useThemedColors } from '../../hooks';
+import { useLocalization } from '../../contexts';
 
 interface GameResultProps {
   statistics: GameStatistics;
@@ -21,79 +23,81 @@ export const GameResult: React.FC<GameResultProps> = ({
   attempts,
   showDetailedResults = false,
 }) => {
+  const colors = useThemedColors();
+  const { t } = useLocalization();
   const performance = GameLogic.getPerformanceRating(
     statistics.averageTime,
     statistics.validAttempts > 0
   );
 
   const renderStatCard = (title: string, value: string, subtitle?: string, color?: string) => (
-    <Card style={styles.statCard} variant="elevated">
-      <Text style={styles.statTitle}>{title}</Text>
-      <Text style={[styles.statValue, color && { color }]}>{value}</Text>
-      {subtitle && <Text style={styles.statSubtitle}>{subtitle}</Text>}
+    <Card style={[styles.statCard, { backgroundColor: colors.CARD }]} variant="elevated">
+      <Text style={[styles.statTitle, { color: colors.TEXT_SECONDARY }]}>{title}</Text>
+      <Text style={[styles.statValue, { color: color || colors.TEXT_PRIMARY }]}>{value}</Text>
+      {subtitle && <Text style={[styles.statSubtitle, { color: colors.TEXT_TERTIARY }]}>{subtitle}</Text>}
     </Card>
   );
 
   const renderAttemptsList = () => (
-    <Card style={styles.attemptsCard}>
-      <Text style={styles.sectionTitle}>시도별 결과</Text>
-      <ScrollView style={styles.attemptsList} showsVerticalScrollIndicator={false}>
+    <Card style={[styles.attemptsCard, { backgroundColor: colors.CARD }]}>
+      <Text style={[styles.sectionTitle, { color: colors.TEXT_PRIMARY }]}>{t.results.attemptResults}</Text>
+      <View style={styles.attemptsList}>
         {attempts.map((attempt, index) => (
-          <View key={index} style={styles.attemptItem}>
-            <View style={styles.attemptNumber}>
-              <Text style={styles.attemptNumberText}>{attempt.attemptNumber}</Text>
+          <View key={index} style={[styles.attemptItem, { borderBottomColor: colors.TEXT_TERTIARY }]}>
+            <View style={[styles.attemptNumber, { backgroundColor: colors.PRIMARY }]}>
+              <Text style={[styles.attemptNumberText, { color: colors.TEXT_PRIMARY }]}>{index + 1}</Text>
             </View>
             <View style={styles.attemptInfo}>
               <Text style={[
                 styles.attemptTime,
-                !attempt.isValid && styles.invalidAttempt
+                { color: attempt.isValid ? colors.TEXT_PRIMARY : colors.ERROR }
               ]}>
                 {attempt.isValid && attempt.reactionTime > 0 
                   ? GameLogic.formatTime(attempt.reactionTime) 
-                  : '실패'}
+                  : t.results.failed}
               </Text>
               {!attempt.isValid && (
-                <Text style={styles.attemptError}>
-                  {attempt.reactionTime === 0 ? '조기 반응' : '시간 초과'}
+                <Text style={[styles.attemptError, { color: colors.ERROR }]}>
+                  {attempt.reactionTime === 0 ? t.results.earlyReaction : t.results.timeout}
                 </Text>
               )}
             </View>
             <View style={[
               styles.attemptStatus,
-              { backgroundColor: attempt.isValid ? COLORS.SUCCESS : COLORS.ERROR }
+              { backgroundColor: attempt.isValid ? colors.SUCCESS : colors.ERROR }
             ]} />
           </View>
         ))}
-      </ScrollView>
+      </View>
     </Card>
   );
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       {/* Performance Summary */}
-      <Card style={[styles.performanceCard, { borderColor: performance.color }] as any} variant="outlined">
+      <Card style={[styles.performanceCard, { borderColor: performance.color, backgroundColor: colors.CARD }] as any} variant="outlined">
         <Text style={[styles.performanceRating, { color: performance.color }]}>
-          {performance.message}
+          {t.game[performance.message as keyof typeof t.game]}
         </Text>
-        <Text style={styles.performanceAverage}>
-          평균 반응시간: {GameLogic.formatTime(statistics.averageTime)}
+        <Text style={[styles.performanceAverage, { color: colors.TEXT_SECONDARY }]}>
+          {t.results.averageTime}: {statistics.validAttempts > 0 ? GameLogic.formatTime(statistics.averageTime) : '-'}
         </Text>
       </Card>
 
       {/* Statistics Grid */}
       <View style={styles.statsGrid}>
         {renderStatCard(
-          '최고 기록',
+          t.results.bestTime,
           statistics.validAttempts > 0 ? GameLogic.formatTime(statistics.bestTime) : '-',
           '가장 빠른 반응',
-          statistics.validAttempts > 0 ? COLORS.SUCCESS : COLORS.TEXT_SECONDARY
+          statistics.validAttempts > 0 ? colors.SUCCESS : colors.TEXT_SECONDARY
         )}
         
         {renderStatCard(
-          '평균 시간',
+          t.results.averageTime,
           statistics.validAttempts > 0 ? GameLogic.formatTime(statistics.averageTime) : '-',
           `${statistics.validAttempts}번 성공`,
-          statistics.validAttempts > 0 ? COLORS.INFO : COLORS.TEXT_SECONDARY
+          statistics.validAttempts > 0 ? colors.INFO : colors.TEXT_SECONDARY
         )}
         
         {(() => {
@@ -104,21 +108,21 @@ export const GameResult: React.FC<GameResultProps> = ({
                 )
               : 0;
           return renderStatCard(
-            '정확도',
+            t.results.accuracy,
             `${accuracy}%`,
             `${statistics.validAttempts}/${statistics.totalAttempts}`,
             statistics.totalAttempts > 0 &&
             statistics.validAttempts === statistics.totalAttempts
-              ? COLORS.SUCCESS
-              : COLORS.WARNING
+              ? colors.SUCCESS
+              : colors.WARNING
           );
         })()}
         
         {statistics.worstTime > 0 && statistics.validAttempts > 1 && renderStatCard(
-          '최저 기록',
+          t.results.worstTime,
           GameLogic.formatTime(statistics.worstTime),
           '가장 느린 반응',
-          COLORS.TEXT_SECONDARY
+          colors.TEXT_SECONDARY
         )}
       </View>
 
@@ -148,7 +152,6 @@ const styles = StyleSheet.create({
   
   performanceAverage: {
     fontSize: TYPOGRAPHY.FONT_SIZE.LG,
-    color: COLORS.TEXT_SECONDARY,
     textAlign: 'center',
   },
   
@@ -167,7 +170,6 @@ const styles = StyleSheet.create({
   
   statTitle: {
     fontSize: TYPOGRAPHY.FONT_SIZE.SM,
-    color: COLORS.TEXT_SECONDARY,
     textAlign: 'center',
     marginBottom: SPACING.XS,
   },
@@ -175,13 +177,11 @@ const styles = StyleSheet.create({
   statValue: {
     fontSize: TYPOGRAPHY.FONT_SIZE.XXL,
     fontWeight: TYPOGRAPHY.FONT_WEIGHT.BOLD,
-    color: COLORS.TEXT_PRIMARY,
     textAlign: 'center',
   },
   
   statSubtitle: {
     fontSize: TYPOGRAPHY.FONT_SIZE.XS,
-    color: COLORS.TEXT_TERTIARY,
     textAlign: 'center',
     marginTop: SPACING.XS,
   },
@@ -193,12 +193,11 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: TYPOGRAPHY.FONT_SIZE.LG,
     fontWeight: TYPOGRAPHY.FONT_WEIGHT.SEMIBOLD,
-    color: COLORS.TEXT_PRIMARY,
     marginBottom: SPACING.MD,
   },
   
   attemptsList: {
-    maxHeight: 200,
+    // No height restriction - show all items
   },
   
   attemptItem: {
@@ -206,21 +205,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: SPACING.SM,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.TEXT_TERTIARY,
   },
   
   attemptNumber: {
     width: 32,
     height: 32,
     borderRadius: BORDER_RADIUS.ROUND,
-    backgroundColor: COLORS.PRIMARY,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: SPACING.MD,
   },
   
   attemptNumberText: {
-    color: COLORS.TEXT_PRIMARY,
     fontWeight: TYPOGRAPHY.FONT_WEIGHT.BOLD,
     fontSize: TYPOGRAPHY.FONT_SIZE.SM,
   },
@@ -232,16 +228,10 @@ const styles = StyleSheet.create({
   attemptTime: {
     fontSize: TYPOGRAPHY.FONT_SIZE.MD,
     fontWeight: TYPOGRAPHY.FONT_WEIGHT.SEMIBOLD,
-    color: COLORS.TEXT_PRIMARY,
-  },
-  
-  invalidAttempt: {
-    color: COLORS.ERROR,
   },
   
   attemptError: {
     fontSize: TYPOGRAPHY.FONT_SIZE.XS,
-    color: COLORS.ERROR,
     marginTop: 2,
   },
   

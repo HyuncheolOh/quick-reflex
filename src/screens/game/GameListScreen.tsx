@@ -5,13 +5,16 @@ import {
   StyleSheet,
   ScrollView,
   Alert,
+  TouchableOpacity,
 } from 'react-native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { Card, Button, ConfirmModal } from '../../components/common';
-import { COLORS, SPACING, TYPOGRAPHY } from '../../constants';
+import { SPACING, TYPOGRAPHY } from '../../constants';
 import { MainStackParamList, UserProfile } from '../../types';
 import { LocalStorageService, GameStorageService } from '../../services/storage';
 import { StatisticsUtils } from '../../utils';
+import { useThemedColors } from '../../hooks';
+import { useLocalization } from '../../contexts';
 
 type GameListScreenProps = {
   navigation: StackNavigationProp<MainStackParamList, 'GameList'>;
@@ -22,6 +25,8 @@ export const GameListScreen: React.FC<GameListScreenProps> = ({ navigation }) =>
   const [personalBest, setPersonalBest] = useState<number | null>(null);
   const [recentAverage, setRecentAverage] = useState<number | null>(null);
   const [showResetModal, setShowResetModal] = useState(false);
+  const colors = useThemedColors();
+  const { t } = useLocalization();
 
   useEffect(() => {
     loadUserData();
@@ -76,39 +81,47 @@ export const GameListScreen: React.FC<GameListScreenProps> = ({ navigation }) =>
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.BACKGROUND }]}>
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.title}>QuickReflex</Text>
-          <Text style={styles.subtitle}>순발력 측정 게임</Text>
+          <View style={styles.titleContainer}>
+            <Text style={[styles.title, { color: colors.TEXT_PRIMARY }]}>{t.app.title}</Text>
+            <Text style={[styles.subtitle, { color: colors.TEXT_SECONDARY }]}>{t.app.subtitle}</Text>
+          </View>
+          <TouchableOpacity 
+            style={[styles.settingsButton, { backgroundColor: colors.SURFACE }]}
+            onPress={() => navigation.navigate('Settings')}
+          >
+            <Text style={styles.settingsIcon}>⚙️</Text>
+          </TouchableOpacity>
         </View>
 
         {/* User Stats */}
         {userProfile && (
-          <Card style={styles.statsCard}>
-            <Text style={styles.sectionTitle}>나의 기록</Text>
+          <Card style={[styles.statsCard, { backgroundColor: colors.CARD }]}>
+            <Text style={[styles.sectionTitle, { color: colors.TEXT_PRIMARY }]}>{t.statistics.myRecords}</Text>
             
             <View style={styles.statsGrid}>
               <View style={styles.statItem}>
-                <Text style={styles.statValue}>
+                <Text style={[styles.statValue, { color: colors.PRIMARY }]}>
                   {userProfile.statistics?.totalGamesPlayed || 0}
                 </Text>
-                <Text style={styles.statLabel}>총 게임 수</Text>
+                <Text style={[styles.statLabel, { color: colors.TEXT_SECONDARY }]}>{t.statistics.totalGames}</Text>
               </View>
               
               <View style={styles.statItem}>
-                <Text style={styles.statValue}>
+                <Text style={[styles.statValue, { color: colors.PRIMARY }]}>
                   {personalBest ? `${Math.round(personalBest)}ms` : '-'}
                 </Text>
-                <Text style={styles.statLabel}>최고 기록</Text>
+                <Text style={[styles.statLabel, { color: colors.TEXT_SECONDARY }]}>{t.statistics.bestRecord}</Text>
               </View>
               
               <View style={styles.statItem}>
-                <Text style={styles.statValue}>
+                <Text style={[styles.statValue, { color: colors.PRIMARY }]}>
                   {recentAverage ? `${Math.round(recentAverage)}ms` : '-'}
                 </Text>
-                <Text style={styles.statLabel}>평균 기록</Text>
+                <Text style={[styles.statLabel, { color: colors.TEXT_SECONDARY }]}>{t.statistics.averageRecord}</Text>
               </View>
             </View>
           </Card>
@@ -116,57 +129,57 @@ export const GameListScreen: React.FC<GameListScreenProps> = ({ navigation }) =>
 
         {/* Game Modes */}
         <View style={styles.gameSection}>
-          <Text style={styles.sectionTitle}>게임 모드</Text>
+          <Text style={[styles.sectionTitle, { color: colors.TEXT_PRIMARY }]}>{t.navigation.gameList}</Text>
           
-          <Card style={styles.gameCard} touchable onPress={startTapTest}>
+          <Card style={[styles.gameCard, { backgroundColor: colors.CARD }]} touchable onPress={startTapTest}>
             <View style={styles.gameInfo}>
-              <View style={styles.gameIcon}>
+              <View style={[styles.gameIcon, { backgroundColor: colors.PRIMARY }]}>
                 <Text style={styles.gameIconText}>⚡</Text>
               </View>
               <View style={styles.gameDetails}>
-                <Text style={styles.gameTitle}>순발력 테스트</Text>
-                <Text style={styles.gameDescription}>
-                  빨간 화면이 초록색으로 바뀌는 순간 탭하세요!
+                <Text style={[styles.gameTitle, { color: colors.TEXT_PRIMARY }]}>{t.gameModes.tapTest.title}</Text>
+                <Text style={[styles.gameDescription, { color: colors.TEXT_SECONDARY }]}>
+                  {t.gameModes.tapTest.description}
                 </Text>
-                <Text style={styles.gameStats}>5라운드 • 평균 1분</Text>
+                <Text style={[styles.gameStats, { color: colors.TEXT_TERTIARY }]}>{t.gameModes.tapTest.stats}</Text>
               </View>
             </View>
           </Card>
 
           {/* Coming Soon Games */}
-          <Card style={[styles.gameCard, styles.comingSoonCard] as any}>
+          <Card style={[styles.gameCard, styles.comingSoonCard, { backgroundColor: colors.CARD }] as any}>
             <View style={styles.gameInfo}>
-              <View style={styles.gameIcon}>
+              <View style={[styles.gameIcon, { backgroundColor: colors.TEXT_TERTIARY }]}>
                 <Text style={styles.gameIconText}>🎵</Text>
               </View>
               <View style={styles.gameDetails}>
-                <Text style={[styles.gameTitle, styles.comingSoonText]}>
-                  청각 반응 테스트
+                <Text style={[styles.gameTitle, styles.comingSoonText, { color: colors.TEXT_SECONDARY }]}>
+                  {t.gameModes.audioTest.title}
                 </Text>
-                <Text style={[styles.gameDescription, styles.comingSoonText]}>
-                  소리가 나는 순간 탭하세요!
+                <Text style={[styles.gameDescription, styles.comingSoonText, { color: colors.TEXT_TERTIARY }]}>
+                  {t.gameModes.audioTest.description}
                 </Text>
-                <Text style={[styles.gameStats, styles.comingSoonText]}>
-                  곧 출시 예정
+                <Text style={[styles.gameStats, styles.comingSoonText, { color: colors.TEXT_TERTIARY }]}>
+                  {t.gameModes.audioTest.stats}
                 </Text>
               </View>
             </View>
           </Card>
 
-          <Card style={[styles.gameCard, styles.comingSoonCard] as any}>
+          <Card style={[styles.gameCard, styles.comingSoonCard, { backgroundColor: colors.CARD }] as any}>
             <View style={styles.gameInfo}>
-              <View style={styles.gameIcon}>
+              <View style={[styles.gameIcon, { backgroundColor: colors.TEXT_TERTIARY }]}>
                 <Text style={styles.gameIconText}>🎯</Text>
               </View>
               <View style={styles.gameDetails}>
-                <Text style={[styles.gameTitle, styles.comingSoonText]}>
-                  Go/No-Go 테스트
+                <Text style={[styles.gameTitle, styles.comingSoonText, { color: colors.TEXT_SECONDARY }]}>
+                  {t.gameModes.goNoGoTest.title}
                 </Text>
-                <Text style={[styles.gameDescription, styles.comingSoonText]}>
-                  특정 신호에만 반응하세요!
+                <Text style={[styles.gameDescription, styles.comingSoonText, { color: colors.TEXT_TERTIARY }]}>
+                  {t.gameModes.goNoGoTest.description}
                 </Text>
-                <Text style={[styles.gameStats, styles.comingSoonText]}>
-                  곧 출시 예정
+                <Text style={[styles.gameStats, styles.comingSoonText, { color: colors.TEXT_TERTIARY }]}>
+                  {t.gameModes.goNoGoTest.stats}
                 </Text>
               </View>
             </View>
@@ -175,10 +188,10 @@ export const GameListScreen: React.FC<GameListScreenProps> = ({ navigation }) =>
 
         {/* Settings */}
         <View style={styles.settingsSection}>
-          <Text style={styles.sectionTitle}>설정</Text>
+          <Text style={[styles.sectionTitle, { color: colors.TEXT_PRIMARY }]}>{t.navigation.settings}</Text>
           
           <Button
-            title="데이터 초기화"
+            title={t.settings.dataReset}
             onPress={() => setShowResetModal(true)}
             variant="danger"
             size="small"
@@ -191,9 +204,10 @@ export const GameListScreen: React.FC<GameListScreenProps> = ({ navigation }) =>
         visible={showResetModal}
         onClose={() => setShowResetModal(false)}
         onConfirm={handleResetData}
-        title="데이터 초기화"
-        message="모든 게임 기록과 설정이 삭제됩니다.\n정말로 초기화하시겠습니까?"
-        confirmText="초기화"
+        title={t.modals.resetData.title}
+        message={t.modals.resetData.message}
+        confirmText={t.modals.resetData.confirm}
+        cancelText={t.modals.resetData.cancel}
         variant="danger"
       />
     </View>
@@ -203,25 +217,41 @@ export const GameListScreen: React.FC<GameListScreenProps> = ({ navigation }) =>
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.BACKGROUND,
   },
   
   header: {
-    padding: SPACING.LG,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
+    padding: SPACING.LG,
     marginBottom: SPACING.MD,
+  },
+  
+  titleContainer: {
+    flex: 1,
+    alignItems: 'center',
   },
   
   title: {
     fontSize: TYPOGRAPHY.FONT_SIZE.XXXL,
     fontWeight: TYPOGRAPHY.FONT_WEIGHT.EXTRABOLD,
-    color: COLORS.TEXT_PRIMARY,
     marginBottom: SPACING.XS,
   },
   
   subtitle: {
     fontSize: TYPOGRAPHY.FONT_SIZE.MD,
-    color: COLORS.TEXT_SECONDARY,
+  },
+  
+  settingsButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  
+  settingsIcon: {
+    fontSize: 20,
   },
   
   statsCard: {
@@ -232,7 +262,6 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: TYPOGRAPHY.FONT_SIZE.LG,
     fontWeight: TYPOGRAPHY.FONT_WEIGHT.SEMIBOLD,
-    color: COLORS.TEXT_PRIMARY,
     marginBottom: SPACING.MD,
   },
   
@@ -249,13 +278,11 @@ const styles = StyleSheet.create({
   statValue: {
     fontSize: TYPOGRAPHY.FONT_SIZE.XXL,
     fontWeight: TYPOGRAPHY.FONT_WEIGHT.BOLD,
-    color: COLORS.PRIMARY,
     marginBottom: SPACING.XS,
   },
   
   statLabel: {
     fontSize: TYPOGRAPHY.FONT_SIZE.SM,
-    color: COLORS.TEXT_SECONDARY,
     textAlign: 'center',
   },
   
@@ -281,7 +308,6 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: COLORS.PRIMARY,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: SPACING.MD,
@@ -298,20 +324,17 @@ const styles = StyleSheet.create({
   gameTitle: {
     fontSize: TYPOGRAPHY.FONT_SIZE.LG,
     fontWeight: TYPOGRAPHY.FONT_WEIGHT.SEMIBOLD,
-    color: COLORS.TEXT_PRIMARY,
     marginBottom: SPACING.XS,
   },
   
   gameDescription: {
     fontSize: TYPOGRAPHY.FONT_SIZE.SM,
-    color: COLORS.TEXT_SECONDARY,
     lineHeight: 18,
     marginBottom: SPACING.XS,
   },
   
   gameStats: {
     fontSize: TYPOGRAPHY.FONT_SIZE.XS,
-    color: COLORS.TEXT_TERTIARY,
   },
   
   comingSoonText: {

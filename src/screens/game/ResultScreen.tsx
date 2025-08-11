@@ -11,10 +11,12 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { RouteProp } from '@react-navigation/native';
 import { GameResult } from '../../components/game';
 import { Button, Card } from '../../components/common';
-import { COLORS, SPACING, TYPOGRAPHY } from '../../constants';
+import { SPACING, TYPOGRAPHY } from '../../constants';
 import { MainStackParamList, GameSession } from '../../types';
 import { GameStorageService } from '../../services/storage';
 import { StatisticsUtils, GameLogic } from '../../utils';
+import { useThemedColors } from '../../hooks';
+import { useLocalization } from '../../contexts';
 
 type ResultScreenProps = {
   navigation: StackNavigationProp<MainStackParamList, 'Result'>;
@@ -23,10 +25,12 @@ type ResultScreenProps = {
 
 export const ResultScreen: React.FC<ResultScreenProps> = ({ navigation, route }) => {
   const { gameSession } = route.params;
+  const colors = useThemedColors();
+  const { t } = useLocalization();
   const [personalBest, setPersonalBest] = useState<number | null>(null);
   const [previousAverage, setPreviousAverage] = useState<number | null>(null);
   const [isNewRecord, setIsNewRecord] = useState(false);
-  const [insights, setInsights] = useState<string[]>([]);
+  const [insights, setInsights] = useState<Array<{ key: string; params: any }>>([]);
 
   useEffect(() => {
     loadComparisonData();
@@ -38,8 +42,8 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({ navigation, route })
       const best = await GameStorageService.getPersonalBest();
       setPersonalBest(best);
 
-      // Check if this is a new record
-      if (best && gameSession.statistics.bestTime < best) {
+      // Check if this is a new record (only if game wasn't failed and has valid attempts)
+      if (best && !gameSession.isFailed && gameSession.statistics.validAttempts > 0 && gameSession.statistics.bestTime < best) {
         setIsNewRecord(true);
       }
 
@@ -83,24 +87,24 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({ navigation, route })
             )
           : 0;
       const shareText =
-        `QuickReflex 순발력 테스트 결과!\n\n` +
-        `평균 반응시간: ${GameLogic.formatTime(
+        `${t.share.resultTitle}\n\n` +
+        `${t.share.averageTime}: ${GameLogic.formatTime(
           gameSession.statistics.averageTime
         )}\n` +
-        `최고 반응시간: ${GameLogic.formatTime(
+        `${t.share.bestTime}: ${GameLogic.formatTime(
           gameSession.statistics.bestTime
         )}\n` +
-        `정확도: ${accuracy}%\n\n` +
-        `${performance.message} 🎉\n\n` +
-        `당신도 도전해보세요! #QuickReflex #순발력테스트`;
+        `${t.share.accuracy}: ${accuracy}%\n\n` +
+        `${t.game[performance.message as keyof typeof t.game]} 🎉\n\n` +
+        `${t.share.challenge}`;
 
       await Share.share({
         message: shareText,
-        title: 'QuickReflex 결과 공유',
+        title: t.share.title,
       });
     } catch (error) {
       console.error('Error sharing result:', error);
-      Alert.alert('오류', '결과 공유 중 오류가 발생했습니다.');
+      Alert.alert(t.common.error, t.messages.shareError);
     }
   };
 
@@ -108,18 +112,21 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({ navigation, route })
     const improvements: string[] = [];
     const declines: string[] = [];
 
-    if (personalBest && gameSession.statistics.bestTime < personalBest) {
-      const improvement = personalBest - gameSession.statistics.bestTime;
-      improvements.push(`최고 기록이 ${GameLogic.formatTime(improvement)} 향상됐어요!`);
-    }
+    // Only show comparisons if current game was successful (not failed and has valid attempts)
+    if (!gameSession.isFailed && gameSession.statistics.validAttempts > 0) {
+      if (personalBest && gameSession.statistics.bestTime < personalBest) {
+        const improvement = personalBest - gameSession.statistics.bestTime;
+        improvements.push(`최고 기록이 ${GameLogic.formatTime(improvement)} 향상됐어요!`);
+      }
 
-    if (previousAverage) {
-      const diff = previousAverage - gameSession.statistics.averageTime;
-      if (Math.abs(diff) > 10) { // Only show if significant difference
-        if (diff > 0) {
-          improvements.push(`평균 반응시간이 ${GameLogic.formatTime(diff)} 빨라졌어요!`);
-        } else {
-          declines.push(`평균 반응시간이 ${GameLogic.formatTime(Math.abs(diff))} 느려졌어요.`);
+      if (previousAverage && previousAverage > 0 && gameSession.statistics.averageTime > 0) {
+        const diff = previousAverage - gameSession.statistics.averageTime;
+        if (Math.abs(diff) > 10) { // Only show if significant difference
+          if (diff > 0) {
+            improvements.push(`평균 반응시간이 ${GameLogic.formatTime(diff)} 빨라졌어요!`);
+          } else {
+            declines.push(`평균 반응시간이 ${GameLogic.formatTime(Math.abs(diff))} 느려졌어요.`);
+          }
         }
       }
     }
@@ -130,12 +137,12 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({ navigation, route })
 
     return (
       <Card style={styles.comparisonCard}>
-        <Text style={styles.comparisonTitle}>이전 기록과 비교</Text>
+        <Text style={[styles.comparisonTitle, { color: colors.TEXT_PRIMARY }]}>이전 기록과 비교</Text>
         
         {improvements.map((improvement, index) => (
           <View key={`improvement-${index}`} style={styles.comparisonItem}>
             <Text style={styles.improvementIcon}>📈</Text>
-            <Text style={[styles.comparisonText, styles.improvementText]}>
+            <Text style={[styles.comparisonText, { color: colors.SUCCESS }]}>
               {improvement}
             </Text>
           </View>
@@ -144,7 +151,7 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({ navigation, route })
         {declines.map((decline, index) => (
           <View key={`decline-${index}`} style={styles.comparisonItem}>
             <Text style={styles.declineIcon}>📉</Text>
-            <Text style={[styles.comparisonText, styles.declineText]}>
+            <Text style={[styles.comparisonText, { color: colors.WARNING }]}>
               {decline}
             </Text>
           </View>
@@ -154,30 +161,37 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({ navigation, route })
   };
 
   const renderInsightsCard = () => {
-    if (insights.length === 0) return null;
+    // Don't show insights for failed games
+    if (insights.length === 0 || gameSession.isFailed) return null;
 
     return (
       <Card style={styles.insightsCard}>
-        <Text style={styles.insightsTitle}>분석 및 인사이트</Text>
-        {insights.map((insight, index) => (
-          <View key={index} style={styles.insightItem}>
-            <Text style={styles.insightBullet}>•</Text>
-            <Text style={styles.insightText}>{insight}</Text>
-          </View>
-        ))}
+        <Text style={[styles.insightsTitle, { color: colors.TEXT_PRIMARY }]}>{t.results.insights}</Text>
+        {insights.map((insight, index) => {
+          const insightText = insight.params 
+            ? (t.statistics.insights[insight.key as keyof typeof t.statistics.insights] as Function)(insight.params.percentage || insight.params)
+            : t.statistics.insights[insight.key as keyof typeof t.statistics.insights] as string;
+          
+          return (
+            <View key={index} style={styles.insightItem}>
+              <Text style={[styles.insightBullet, { color: colors.PRIMARY }]}>•</Text>
+              <Text style={[styles.insightText, { color: colors.TEXT_SECONDARY }]}>{insightText}</Text>
+            </View>
+          );
+        })}
       </Card>
     );
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.BACKGROUND }]}>
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.title}>게임 완료!</Text>
+        <View style={[styles.header, { borderBottomColor: colors.TEXT_TERTIARY }]}>
+          <Text style={[styles.title, { color: colors.TEXT_PRIMARY }]}>{t.results.gameComplete}</Text>
           {isNewRecord && (
-            <View style={styles.newRecordBadge}>
-              <Text style={styles.newRecordText}>🏆 신기록!</Text>
+            <View style={[styles.newRecordBadge, { backgroundColor: colors.SUCCESS }]}>
+              <Text style={[styles.newRecordText, { color: colors.TEXT_PRIMARY }]}>{t.results.newRecord}</Text>
             </View>
           )}
         </View>
@@ -200,20 +214,20 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({ navigation, route })
         {/* Action Buttons */}
         <View style={styles.buttonContainer}>
           <Button
-            title="다시 플레이"
+            title={t.results.playAgain}
             onPress={playAgain}
             style={styles.primaryButton}
           />
           
           <View style={styles.secondaryButtonRow}>
             <Button
-              title="결과 공유"
+              title={t.results.shareResult}
               onPress={shareResult}
               variant="ghost"
               style={styles.secondaryButton}
             />
             <Button
-              title="홈으로"
+              title={t.results.goHome}
               onPress={goToHome}
               variant="ghost"
               style={styles.secondaryButton}
@@ -228,25 +242,21 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({ navigation, route })
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.BACKGROUND,
   },
   
   header: {
     padding: SPACING.LG,
     alignItems: 'center',
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.TEXT_TERTIARY,
   },
   
   title: {
     fontSize: TYPOGRAPHY.FONT_SIZE.XXXL,
     fontWeight: TYPOGRAPHY.FONT_WEIGHT.BOLD,
-    color: COLORS.TEXT_PRIMARY,
     marginBottom: SPACING.SM,
   },
   
   newRecordBadge: {
-    backgroundColor: COLORS.SUCCESS,
     paddingHorizontal: SPACING.MD,
     paddingVertical: SPACING.XS,
     borderRadius: 20,
@@ -255,7 +265,6 @@ const styles = StyleSheet.create({
   newRecordText: {
     fontSize: TYPOGRAPHY.FONT_SIZE.SM,
     fontWeight: TYPOGRAPHY.FONT_WEIGHT.BOLD,
-    color: COLORS.TEXT_PRIMARY,
   },
   
   resultsContainer: {
@@ -270,7 +279,6 @@ const styles = StyleSheet.create({
   comparisonTitle: {
     fontSize: TYPOGRAPHY.FONT_SIZE.LG,
     fontWeight: TYPOGRAPHY.FONT_WEIGHT.SEMIBOLD,
-    color: COLORS.TEXT_PRIMARY,
     marginBottom: SPACING.MD,
   },
   
@@ -296,13 +304,7 @@ const styles = StyleSheet.create({
     fontWeight: TYPOGRAPHY.FONT_WEIGHT.MEDIUM,
   },
   
-  improvementText: {
-    color: COLORS.SUCCESS,
-  },
-  
-  declineText: {
-    color: COLORS.WARNING,
-  },
+  // Colors will be applied dynamically
   
   insightsCard: {
     marginHorizontal: SPACING.LG,
@@ -312,7 +314,6 @@ const styles = StyleSheet.create({
   insightsTitle: {
     fontSize: TYPOGRAPHY.FONT_SIZE.LG,
     fontWeight: TYPOGRAPHY.FONT_WEIGHT.SEMIBOLD,
-    color: COLORS.TEXT_PRIMARY,
     marginBottom: SPACING.MD,
   },
   
@@ -325,14 +326,12 @@ const styles = StyleSheet.create({
   insightBullet: {
     marginRight: SPACING.SM,
     marginTop: 2,
-    color: COLORS.PRIMARY,
     fontWeight: TYPOGRAPHY.FONT_WEIGHT.BOLD,
   },
   
   insightText: {
     flex: 1,
     fontSize: TYPOGRAPHY.FONT_SIZE.SM,
-    color: COLORS.TEXT_SECONDARY,
     lineHeight: 18,
   },
   

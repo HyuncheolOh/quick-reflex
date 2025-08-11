@@ -6,11 +6,12 @@ import { RootStackParamList } from '../types';
 import { OnboardingNavigator } from './OnboardingNavigator';
 import { MainNavigator } from './MainNavigator';
 import { LocalStorageService } from '../services/storage';
-import { COLORS } from '../constants';
+import { useThemedColors } from '../hooks';
 
 const Stack = createStackNavigator<RootStackParamList>();
 
 export const RootNavigator: React.FC = () => {
+  const colors = useThemedColors();
   const [isLoading, setIsLoading] = useState(true);
   const [isOnboardingCompleted, setIsOnboardingCompleted] = useState(false);
 
@@ -36,16 +37,16 @@ export const RootNavigator: React.FC = () => {
       <SafeAreaProvider>
         <SafeAreaView style={{ 
           flex: 1, 
-          backgroundColor: COLORS.BACKGROUND, 
+          backgroundColor: colors.BACKGROUND, 
           justifyContent: 'center', 
           alignItems: 'center' 
         }}>
           <StatusBar 
             barStyle="light-content" 
-            backgroundColor={COLORS.BACKGROUND} 
+            backgroundColor={colors.BACKGROUND} 
             translucent={Platform.OS === 'android'}
           />
-          <ActivityIndicator size="large" color={COLORS.PRIMARY} />
+          <ActivityIndicator size="large" color={colors.PRIMARY} />
         </SafeAreaView>
       </SafeAreaProvider>
     );
@@ -53,17 +54,17 @@ export const RootNavigator: React.FC = () => {
 
   return (
     <SafeAreaProvider>
-      <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.BACKGROUND }}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: colors.BACKGROUND }}>
         <StatusBar 
           barStyle="light-content" 
-          backgroundColor={COLORS.BACKGROUND} 
+          backgroundColor={colors.BACKGROUND} 
           translucent={Platform.OS === 'android'}
         />
         <Stack.Navigator
           screenOptions={{
             headerShown: false,
             gestureEnabled: false,
-            cardStyle: { backgroundColor: COLORS.BACKGROUND },
+            cardStyle: { backgroundColor: colors.BACKGROUND },
           }}
           initialRouteName={isOnboardingCompleted ? 'Main' : 'Onboarding'}
         >

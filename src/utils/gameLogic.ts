@@ -39,6 +39,9 @@ export class GameLogic {
   }
 
   static formatTime(milliseconds: number): string {
+    if (milliseconds <= 0) {
+      return '-';
+    }
     return `${Math.round(milliseconds)}ms`;
   }
 
@@ -47,11 +50,11 @@ export class GameLogic {
     message: string;
     color: string;
   } {
-    // 유효한 시도가 없는 경우
+    // No valid attempts case
     if (!hasValidAttempts || averageTime <= 0) {
       return {
         rating: 'NO_DATA',
-        message: '유효한 기록이 없습니다',
+        message: 'noValidRecords', // Translation key for localization system
         color: '#8E8E93',
       };
     }
@@ -59,25 +62,25 @@ export class GameLogic {
     if (averageTime <= 200) {
       return {
         rating: 'EXCELLENT',
-        message: '뛰어난 반응속도!',
+        message: 'excellent', // Translation key for localization system
         color: '#00FF00',
       };
     } else if (averageTime <= 300) {
       return {
         rating: 'GOOD',
-        message: '좋은 반응속도!',
+        message: 'good', // Translation key for localization system
         color: '#34C759',
       };
     } else if (averageTime <= 500) {
       return {
         rating: 'AVERAGE',
-        message: '평균적인 반응속도',
+        message: 'normal', // Translation key for localization system
         color: '#FF9500',
       };
     } else {
       return {
         rating: 'SLOW',
-        message: '연습이 필요합니다',
+        message: 'needPractice', // Translation key for localization system
         color: '#FF3B30',
       };
     }

@@ -4,12 +4,12 @@ import { StackNavigationProp } from "@react-navigation/stack";
 import { TapButton, CountdownTimer } from "../../components/game";
 import { Button, ConfirmModal } from "../../components/common";
 import {
-  COLORS,
   SPACING,
   TYPOGRAPHY,
   GAME_CONFIG,
-  GAME_MESSAGES,
 } from "../../constants";
+import { useThemedColors } from "../../hooks";
+import { useLocalization } from "../../contexts";
 import {
   MainStackParamList,
   GameState,
@@ -24,6 +24,8 @@ type TapTestScreenProps = {
 };
 
 export const TapTestScreen: React.FC<TapTestScreenProps> = ({ navigation }) => {
+  const colors = useThemedColors();
+  const { t } = useLocalization();
   const [gameState, setGameState] = useState<TapGameState>({
     currentState: GameState.IDLE,
     currentRound: 0,
@@ -35,7 +37,7 @@ export const TapTestScreen: React.FC<TapTestScreenProps> = ({ navigation }) => {
   });
 
   const [attempts, setAttempts] = useState<ReactionAttempt[]>([]);
-  const [message, setMessage] = useState<string>(GAME_MESSAGES.TAP_TO_START);
+  const [message, setMessage] = useState<string>('');
   const [showExitModal, setShowExitModal] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
 
@@ -51,6 +53,11 @@ export const TapTestScreen: React.FC<TapTestScreenProps> = ({ navigation }) => {
       backHandler.remove();
     };
   }, [gameState.currentState]);
+
+  useEffect(() => {
+    // Set initial message
+    setMessage(t.game.tapToStart);
+  }, [t]);
 
   useEffect(() => {
     // 컴포넌트가 언마운트될 때 타이머를 정리합니다.
@@ -69,6 +76,8 @@ export const TapTestScreen: React.FC<TapTestScreenProps> = ({ navigation }) => {
       return false; // Allow default back behavior
     }
 
+    // Pause the game when back is pressed during gameplay
+    pauseGame();
     setShowExitModal(true);
     return true; // Prevent default back behavior
   };
@@ -81,7 +90,7 @@ export const TapTestScreen: React.FC<TapTestScreenProps> = ({ navigation }) => {
         currentRound: 0,
       }));
       setAttempts([]);
-      setMessage(GAME_MESSAGES.GET_READY);
+      setMessage(t.game.getReady);
       setIsPaused(false);
     }
   };
@@ -123,7 +132,7 @@ export const TapTestScreen: React.FC<TapTestScreenProps> = ({ navigation }) => {
     });
 
     setGameState((prev) => ({ ...prev, currentState: GameState.FAILED }));
-    setMessage(GAME_MESSAGES.TOO_SLOW);
+    setMessage(t.game.tooSlow);
 
     setTimeout(() => {
       nextRound();
@@ -142,7 +151,7 @@ export const TapTestScreen: React.FC<TapTestScreenProps> = ({ navigation }) => {
       randomDelay: delay,
     }));
 
-    setMessage(GAME_MESSAGES.WAIT_FOR_GREEN);
+    setMessage(t.game.waitForGreen);
 
     // 먼저 이전 타이머를 모두 클리어
     if (timeoutRef.current) {
@@ -173,8 +182,8 @@ export const TapTestScreen: React.FC<TapTestScreenProps> = ({ navigation }) => {
         };
       });
 
-      console.log("메시지 변경:", GAME_MESSAGES.TAP_NOW);
-      setMessage(GAME_MESSAGES.TAP_NOW);
+      console.log("메시지 변경:", t.game.tapNow);
+      setMessage(t.game.tapNow);
 
       // READY 상태에서 반응 대기 타이머
       if (timeoutRef.current) {
@@ -206,7 +215,7 @@ export const TapTestScreen: React.FC<TapTestScreenProps> = ({ navigation }) => {
         break;
 
       case GameState.WAITING:
-        // Too early - game over
+        // Too early - end game immediately
         const failedAttempt = GameLogic.createAttempt(
           gameState.currentRound + 1,
           0,
@@ -215,10 +224,10 @@ export const TapTestScreen: React.FC<TapTestScreenProps> = ({ navigation }) => {
 
         setAttempts((prev) => [...prev, failedAttempt]);
         setGameState((prev) => ({ ...prev, currentState: GameState.FAILED }));
-        setMessage(GAME_MESSAGES.TOO_EARLY);
+        setMessage(t.game.tooEarly);
 
         setTimeout(() => {
-          nextRound();
+          completeGame();
         }, GAME_CONFIG.RESULT_DISPLAY_TIME);
         break;
 
@@ -240,8 +249,8 @@ export const TapTestScreen: React.FC<TapTestScreenProps> = ({ navigation }) => {
         }));
         setMessage(
           isValid
-            ? `훌륭해요! ${GameLogic.formatTime(reactionTime)}`
-            : GAME_MESSAGES.TOO_EARLY
+            ? t.game.excellentReaction(GameLogic.formatTime(reactionTime))
+            : t.game.tooEarly
         );
 
         setTimeout(() => {
@@ -280,7 +289,7 @@ export const TapTestScreen: React.FC<TapTestScreenProps> = ({ navigation }) => {
           currentRound: newRound,
         }));
 
-        setMessage(`라운드 ${newRound + 1} 준비...`);
+        setMessage(t.game.roundReady(newRound + 1));
 
         setTimeout(() => {
           if (!isPaused) {
@@ -306,7 +315,7 @@ export const TapTestScreen: React.FC<TapTestScreenProps> = ({ navigation }) => {
         currentState: finalState,
       }));
 
-      setMessage(GAME_MESSAGES.GAME_COMPLETE);
+      setMessage(t.game.gameComplete);
 
       // 비동기 작업을 별도로 처리
       (async () => {
@@ -362,37 +371,89 @@ export const TapTestScreen: React.FC<TapTestScreenProps> = ({ navigation }) => {
     navigation.goBack();
   };
 
+  const stopGame = async () => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+    
+    setShowExitModal(false);
+    
+    // Save incomplete game session
+    try {
+      const gameSession = await GameStorageService.saveGameSession(
+        "TAP_TEST",
+        attempts,
+        false, // Game not completed
+        true  // Game was stopped/failed
+      );
+      
+      // Navigate to results with the stopped game session
+      navigation.navigate("Result", { gameSession });
+    } catch (error) {
+      console.error("Error saving incomplete game session:", error);
+      // Create temporary session for navigation if save fails
+      const tempSession = {
+        id: "temp",
+        gameType: "TAP_TEST" as const,
+        userId: "temp",
+        timestamp: Date.now(),
+        attempts: attempts,
+        statistics: GameLogic.calculateStatistics(attempts),
+        isCompleted: false,
+        isFailed: true,
+      };
+      navigation.navigate("Result", { gameSession: tempSession });
+    }
+  };
+
   const getProgressPercentage = () => {
     // attempts 상태가 업데이트되면 자동으로 재계산됨
     return (attempts.length / gameState.totalRounds) * 100;
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.BACKGROUND }]}>
       {/* Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { borderBottomColor: colors.TEXT_TERTIARY }]}>
         <View style={styles.progressContainer}>
-          <View style={styles.progressBackground}>
+          <View style={[styles.progressBackground, { backgroundColor: colors.TEXT_TERTIARY }]}>
             <View
               style={[
                 styles.progressFill,
-                { width: `${getProgressPercentage()}%` },
+                { width: `${getProgressPercentage()}%`, backgroundColor: colors.PRIMARY },
               ]}
             />
           </View>
-          <Text style={styles.progressText}>
+          <Text style={[styles.progressText, { color: colors.TEXT_PRIMARY }]}>
             {attempts.length}/{gameState.totalRounds}
           </Text>
         </View>
 
         {gameState.currentState !== GameState.IDLE &&
           gameState.currentState !== GameState.GAME_COMPLETE && (
-            <Button
-              title={isPaused ? "계속" : "일시정지"}
-              onPress={isPaused ? resumeGame : pauseGame}
-              variant="ghost"
-              size="small"
-            />
+            <View style={styles.controlButtons}>
+              <Button
+                title={isPaused ? t.game.resume : t.game.pause}
+                onPress={isPaused ? resumeGame : pauseGame}
+                variant="ghost"
+                size="small"
+                style={styles.controlButton}
+              />
+              <Button
+                title={t.game.stop}
+                onPress={() => setShowExitModal(true)}
+                variant="ghost"
+                size="small"
+                style={[
+                  styles.controlButton, 
+                  { 
+                    backgroundColor: colors.ERROR + "20",
+                    borderColor: colors.ERROR,
+                    borderWidth: 1,
+                  }
+                ]}
+              />
+            </View>
           )}
       </View>
 
@@ -408,7 +469,7 @@ export const TapTestScreen: React.FC<TapTestScreenProps> = ({ navigation }) => {
             gameState={gameState.currentState}
             onPress={handleTap}
             message={
-              isPaused ? "일시정지됨\n위에서 계속 버튼을 눌러주세요" : message
+              isPaused ? t.game.pausedMessage : message
             }
             disabled={isPaused}
           />
@@ -417,18 +478,18 @@ export const TapTestScreen: React.FC<TapTestScreenProps> = ({ navigation }) => {
 
       {/* Quick Stats */}
       {attempts.length > 0 && (
-        <View style={styles.quickStats}>
-          <Text style={styles.quickStatsTitle}>현재 진행상황</Text>
+        <View style={[styles.quickStats, { borderTopColor: colors.TEXT_TERTIARY }]}>
+          <Text style={[styles.quickStatsTitle, { color: colors.TEXT_SECONDARY }]}>{t.game.currentProgress}</Text>
           <View style={styles.statsRow}>
-            <Text style={styles.statText}>
-              성공: {attempts.filter((a) => a.isValid).length}
+            <Text style={[styles.statText, { color: colors.TEXT_PRIMARY }]}>
+              {t.game.successful}: {attempts.filter((a) => a.isValid).length}
             </Text>
-            <Text style={styles.statText}>
-              실패: {attempts.filter((a) => !a.isValid).length}
+            <Text style={[styles.statText, { color: colors.TEXT_PRIMARY }]}>
+              {t.game.failed}: {attempts.filter((a) => !a.isValid).length}
             </Text>
             {attempts.filter((a) => a.isValid).length > 0 && (
-              <Text style={styles.statText}>
-                평균:{" "}
+              <Text style={[styles.statText, { color: colors.TEXT_PRIMARY }]}>
+                {t.game.average}:{" "}
                 {GameLogic.formatTime(
                   GameLogic.calculateStatistics(attempts).averageTime
                 )}
@@ -441,11 +502,15 @@ export const TapTestScreen: React.FC<TapTestScreenProps> = ({ navigation }) => {
       {/* Exit Confirmation Modal */}
       <ConfirmModal
         visible={showExitModal}
-        onClose={() => setShowExitModal(false)}
-        onConfirm={exitGame}
-        title="게임 종료"
-        message="진행 중인 게임이 저장되지 않고 종료됩니다.\n정말로 나가시겠습니까?"
-        confirmText="나가기"
+        onClose={() => {
+          setShowExitModal(false);
+          if (isPaused) resumeGame(); // Resume if game was paused
+        }}
+        onConfirm={stopGame}
+        title={t.modals.exitGame.title}
+        message={t.modals.exitGame.message}
+        confirmText={t.modals.exitGame.confirm}
+        cancelText={t.modals.exitGame.cancel}
         variant="danger"
       />
     </View>
@@ -455,7 +520,6 @@ export const TapTestScreen: React.FC<TapTestScreenProps> = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.BACKGROUND,
   },
 
   header: {
@@ -464,7 +528,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: SPACING.LG,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.TEXT_TERTIARY,
   },
 
   progressContainer: {
@@ -474,23 +537,23 @@ const styles = StyleSheet.create({
   },
 
   progressBackground: {
-    height: 8,
-    backgroundColor: COLORS.TEXT_TERTIARY,
-    borderRadius: 4,
+    width: "100%",
+    height: 10,
+    borderRadius: 8,
     overflow: "hidden",
-    marginBottom: SPACING.XS,
+    marginBottom: SPACING.SM,
   },
 
   progressFill: {
     height: "100%",
-    backgroundColor: COLORS.PRIMARY,
+    borderRadius: 8,
   },
 
   progressText: {
-    fontSize: TYPOGRAPHY.FONT_SIZE.SM,
-    color: COLORS.TEXT_SECONDARY,
-    fontWeight: TYPOGRAPHY.FONT_WEIGHT.MEDIUM,
+    fontSize: TYPOGRAPHY.FONT_SIZE.MD,
+    fontWeight: TYPOGRAPHY.FONT_WEIGHT.BOLD,
     textAlign: "center",
+    letterSpacing: 0.5,
   },
 
   gameArea: {
@@ -500,13 +563,11 @@ const styles = StyleSheet.create({
   quickStats: {
     padding: SPACING.LG,
     borderTopWidth: 1,
-    borderTopColor: COLORS.TEXT_TERTIARY,
     alignItems: "center",
   },
 
   quickStatsTitle: {
     fontSize: TYPOGRAPHY.FONT_SIZE.SM,
-    color: COLORS.TEXT_SECONDARY,
     marginBottom: SPACING.XS,
     textAlign: "center",
   },
@@ -520,7 +581,15 @@ const styles = StyleSheet.create({
 
   statText: {
     fontSize: TYPOGRAPHY.FONT_SIZE.SM,
-    color: COLORS.TEXT_PRIMARY,
     fontWeight: TYPOGRAPHY.FONT_WEIGHT.MEDIUM,
+  },
+
+  controlButtons: {
+    flexDirection: "row",
+    gap: SPACING.SM,
+  },
+
+  controlButton: {
+    minWidth: 60,
   },
 });

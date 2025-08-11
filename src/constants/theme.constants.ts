@@ -1,8 +1,38 @@
-export const COLORS = {
+// Light theme colors
+export const LIGHT_COLORS = {
   // Primary Colors
   PRIMARY: '#007AFF',
   SECONDARY: '#34C759',
   ACCENT: '#FF3B30',
+  
+  // Background Colors
+  BACKGROUND: '#FFFFFF',
+  SURFACE: '#F2F2F7',
+  CARD: '#FFFFFF',
+  
+  // Text Colors
+  TEXT_PRIMARY: '#000000',
+  TEXT_SECONDARY: '#3C3C43',
+  TEXT_TERTIARY: '#8E8E93',
+  
+  // Game Colors
+  GAME_WAITING: '#FF0000',
+  GAME_READY: '#00FF00',
+  GAME_IDLE: '#E5E5EA',
+  
+  // Status Colors
+  SUCCESS: '#34C759',
+  ERROR: '#FF3B30',
+  WARNING: '#FF9500',
+  INFO: '#007AFF',
+} as const;
+
+// Dark theme colors
+export const DARK_COLORS = {
+  // Primary Colors
+  PRIMARY: '#0A84FF',
+  SECONDARY: '#30D158',
+  ACCENT: '#FF453A',
   
   // Background Colors
   BACKGROUND: '#000000',
@@ -11,20 +41,23 @@ export const COLORS = {
   
   // Text Colors
   TEXT_PRIMARY: '#FFFFFF',
-  TEXT_SECONDARY: '#8E8E93',
-  TEXT_TERTIARY: '#48484A',
+  TEXT_SECONDARY: '#EBEBF5',
+  TEXT_TERTIARY: '#8E8E93',
   
   // Game Colors
-  GAME_WAITING: '#FF0000',
-  GAME_READY: '#00FF00',
+  GAME_WAITING: '#FF453A',
+  GAME_READY: '#30D158',
   GAME_IDLE: '#333333',
   
   // Status Colors
-  SUCCESS: '#34C759',
-  ERROR: '#FF3B30',
-  WARNING: '#FF9500',
-  INFO: '#007AFF',
+  SUCCESS: '#30D158',
+  ERROR: '#FF453A',
+  WARNING: '#FF9F0A',
+  INFO: '#0A84FF',
 } as const;
+
+// Default to dark colors for backward compatibility
+export const COLORS = DARK_COLORS;
 
 export const SPACING = {
   XS: 4,

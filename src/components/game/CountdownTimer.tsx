@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, StyleSheet, Animated } from "react-native";
-import { COLORS, TYPOGRAPHY, SPACING } from "../../constants";
+import { TYPOGRAPHY, SPACING } from "../../constants";
+import { useThemedColors } from "../../hooks";
+import { useLocalization } from "../../contexts";
 
 interface CountdownTimerProps {
   duration: number; // in milliseconds
@@ -15,6 +17,8 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
   onTick,
   autoStart = true,
 }) => {
+  const colors = useThemedColors();
+  const { t } = useLocalization();
   const [timeLeft, setTimeLeft] = useState(Math.ceil(duration / 1000));
   const [isActive, setIsActive] = useState(autoStart);
   const scaleValue = new Animated.Value(1);
@@ -74,9 +78,12 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
     return (
       <View style={styles.container}>
         <Animated.Text
-          style={[styles.goText, { transform: [{ scale: scaleValue }] }]}
+          style={[
+            styles.goText, 
+            { transform: [{ scale: scaleValue }], color: colors.SUCCESS }
+          ]}
         >
-          시작!
+{t.game.tapNow}
         </Animated.Text>
       </View>
     );
@@ -92,13 +99,12 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
       <Animated.Text
         style={[
           styles.countdownText,
-          { transform: [{ scale: scaleValue }] },
-          timeLeft <= 1 && styles.urgentText,
+          { transform: [{ scale: scaleValue }], color: timeLeft <= 1 ? colors.ERROR : colors.TEXT_PRIMARY },
         ]}
       >
         {timeLeft}
       </Animated.Text>
-      <Text style={styles.subtitle}>준비...</Text>
+      <Text style={[styles.subtitle, { color: colors.TEXT_SECONDARY }]}>{t.game.getReady}</Text>
     </View>
   );
 };
@@ -111,27 +117,22 @@ const styles = StyleSheet.create({
   },
 
   countdownText: {
-    fontSize: TYPOGRAPHY.FONT_SIZE.GIANT * 2,
+    fontSize: TYPOGRAPHY.FONT_SIZE.GIANT * 2.5,
     fontWeight: TYPOGRAPHY.FONT_WEIGHT.EXTRABOLD,
-    color: COLORS.TEXT_PRIMARY,
     textAlign: "center",
-  },
-
-  urgentText: {
-    color: COLORS.ERROR,
+    letterSpacing: 2,
   },
 
   goText: {
-    fontSize: TYPOGRAPHY.FONT_SIZE.GIANT,
+    fontSize: TYPOGRAPHY.FONT_SIZE.GIANT * 1.5,
     fontWeight: TYPOGRAPHY.FONT_WEIGHT.EXTRABOLD,
-    color: COLORS.SUCCESS,
     textAlign: "center",
+    letterSpacing: 1.5,
   },
 
   subtitle: {
     fontSize: TYPOGRAPHY.FONT_SIZE.LG,
     fontWeight: TYPOGRAPHY.FONT_WEIGHT.MEDIUM,
-    color: COLORS.TEXT_SECONDARY,
     marginTop: SPACING.MD,
     textAlign: "center",
   },

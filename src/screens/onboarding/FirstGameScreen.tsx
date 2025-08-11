@@ -9,16 +9,20 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { CommonActions } from '@react-navigation/native';
 import { TapButton, CountdownTimer, GameResult } from '../../components/game';
 import { Button } from '../../components/common';
-import { COLORS, SPACING, TYPOGRAPHY, GAME_CONFIG, GAME_MESSAGES } from '../../constants';
+import { SPACING, TYPOGRAPHY, GAME_CONFIG } from '../../constants';
 import { OnboardingStackParamList, GameState, ReactionAttempt, TapGameState } from '../../types';
 import { GameLogic } from '../../utils';
 import { LocalStorageService, GameStorageService } from '../../services/storage';
+import { useThemedColors } from '../../hooks';
+import { useLocalization } from '../../contexts';
 
 type FirstGameScreenProps = {
   navigation: StackNavigationProp<OnboardingStackParamList, 'FirstGame'>;
 };
 
 export const FirstGameScreen: React.FC<FirstGameScreenProps> = ({ navigation }) => {
+  const colors = useThemedColors();
+  const { t } = useLocalization();
   const [gameState, setGameState] = useState<TapGameState>({
     currentState: GameState.IDLE,
     currentRound: 0,
@@ -30,19 +34,22 @@ export const FirstGameScreen: React.FC<FirstGameScreenProps> = ({ navigation }) 
   });
   
   const [attempts, setAttempts] = useState<ReactionAttempt[]>([]);
-  const [message, setMessage] = useState<string>(GAME_MESSAGES.TAP_TO_START);
+  const [message, setMessage] = useState<string>('');
   const [showResult, setShowResult] = useState(false);
   
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isFirstGame = useRef(true);
 
   useEffect(() => {
+    // Set initial message
+    setMessage(t.game.tapToStart);
+    
     return () => {
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
       }
     };
-  }, []);
+  }, [t]);
 
   const startGame = () => {
     if (gameState.currentState === GameState.IDLE) {
@@ -52,7 +59,7 @@ export const FirstGameScreen: React.FC<FirstGameScreenProps> = ({ navigation }) 
         currentRound: 0,
       }));
       setAttempts([]);
-      setMessage(GAME_MESSAGES.GET_READY);
+      setMessage(t.game.getReady);
     }
   };
 
@@ -70,7 +77,7 @@ export const FirstGameScreen: React.FC<FirstGameScreenProps> = ({ navigation }) 
       randomDelay: delay,
     }));
     
-    setMessage(GAME_MESSAGES.WAIT_FOR_GREEN);
+    setMessage(t.game.waitForGreen);
 
     timeoutRef.current = setTimeout(() => {
       setGameState(prev => ({
@@ -78,7 +85,7 @@ export const FirstGameScreen: React.FC<FirstGameScreenProps> = ({ navigation }) 
         currentState: GameState.READY,
         readyStartTime: Date.now(),
       }));
-      setMessage(GAME_MESSAGES.TAP_NOW);
+      setMessage(t.game.tapNow);
 
       // Auto timeout after ready state
       timeoutRef.current = setTimeout(() => {
@@ -112,7 +119,7 @@ export const FirstGameScreen: React.FC<FirstGameScreenProps> = ({ navigation }) 
         );
         
         setAttempts(prev => [...prev, failedAttempt]);
-        setMessage(GAME_MESSAGES.TOO_EARLY);
+        setMessage(t.game.tooEarly);
         
         setTimeout(() => {
           nextRound();
@@ -133,7 +140,7 @@ export const FirstGameScreen: React.FC<FirstGameScreenProps> = ({ navigation }) 
         setAttempts(prev => [...prev, attempt]);
         setMessage(isValid ? 
           `${GameLogic.formatTime(reactionTime)}!` : 
-          GAME_MESSAGES.TOO_EARLY
+          t.game.tooEarly
         );
         
         setTimeout(() => {
@@ -155,7 +162,7 @@ export const FirstGameScreen: React.FC<FirstGameScreenProps> = ({ navigation }) 
     );
     
     setAttempts(prev => [...prev, timeoutAttempt]);
-    setMessage(GAME_MESSAGES.TOO_SLOW);
+    setMessage(t.game.tooSlow);
     
     setTimeout(() => {
       nextRound();
@@ -186,7 +193,7 @@ export const FirstGameScreen: React.FC<FirstGameScreenProps> = ({ navigation }) 
       currentState: GameState.GAME_COMPLETE,
     }));
     
-    setMessage(GAME_MESSAGES.GAME_COMPLETE);
+    setMessage(t.game.gameComplete);
     
     try {
       // Save the first game session
@@ -221,11 +228,11 @@ export const FirstGameScreen: React.FC<FirstGameScreenProps> = ({ navigation }) 
       await LocalStorageService.setOnboardingCompleted(true);
 
       Alert.alert(
-        '온보딩 완료! 🎉',
-        '첫 번째 게임을 완료했습니다!\n이제 본격적인 게임을 즐겨보세요.',
+        t.onboarding.firstGame.congratulations,
+        t.onboarding.firstGame.message,
         [
           {
-            text: '게임 시작',
+            text: t.onboarding.firstGame.gameStart,
             onPress: () => {
               // Navigate to main app
               navigation.dispatch(
@@ -240,19 +247,19 @@ export const FirstGameScreen: React.FC<FirstGameScreenProps> = ({ navigation }) 
       );
     } catch (error) {
       console.error('Error finishing onboarding:', error);
-      Alert.alert('오류', '온보딩 완료 중 오류가 발생했습니다.');
+      Alert.alert(t.common.error, t.onboarding.firstGame.error);
     }
   };
 
   const statistics = GameLogic.calculateStatistics(attempts);
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.BACKGROUND }]}>
       {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.title}>첫 번째 게임</Text>
-        <Text style={styles.subtitle}>
-          {gameState.currentRound + 1}/{gameState.totalRounds} 라운드
+      <View style={[styles.header, { borderBottomColor: colors.TEXT_TERTIARY }]}>
+        <Text style={[styles.title, { color: colors.TEXT_PRIMARY }]}>{t.onboarding.firstGame.title}</Text>
+        <Text style={[styles.subtitle, { color: colors.TEXT_SECONDARY }]}>
+          {gameState.currentRound + 1}/{gameState.totalRounds} {t.game.round}
         </Text>
       </View>
 
@@ -282,11 +289,11 @@ export const FirstGameScreen: React.FC<FirstGameScreenProps> = ({ navigation }) 
       {/* Footer */}
       {showResult && (
         <View style={styles.footer}>
-          <Text style={styles.encouragement}>
-            {isFirstGame.current ? '첫 게임을 완료했습니다!' : '잘하셨습니다!'}
+          <Text style={[styles.encouragement, { color: colors.SUCCESS }]}>
+            {isFirstGame.current ? t.onboarding.firstGame.encouragement.first : t.onboarding.firstGame.encouragement.normal}
           </Text>
           <Button
-            title="완료"
+            title={t.onboarding.firstGame.complete}
             onPress={finishOnboarding}
             style={styles.finishButton}
           />
@@ -299,26 +306,22 @@ export const FirstGameScreen: React.FC<FirstGameScreenProps> = ({ navigation }) 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.BACKGROUND,
   },
   
   header: {
     padding: SPACING.LG,
     alignItems: 'center',
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.TEXT_TERTIARY,
   },
   
   title: {
     fontSize: TYPOGRAPHY.FONT_SIZE.XXL,
     fontWeight: TYPOGRAPHY.FONT_WEIGHT.BOLD,
-    color: COLORS.TEXT_PRIMARY,
     marginBottom: SPACING.XS,
   },
   
   subtitle: {
     fontSize: TYPOGRAPHY.FONT_SIZE.MD,
-    color: COLORS.TEXT_SECONDARY,
   },
   
   gameArea: {
@@ -332,7 +335,6 @@ const styles = StyleSheet.create({
   
   encouragement: {
     fontSize: TYPOGRAPHY.FONT_SIZE.LG,
-    color: COLORS.SUCCESS,
     textAlign: 'center',
     marginBottom: SPACING.LG,
     fontWeight: TYPOGRAPHY.FONT_WEIGHT.MEDIUM,

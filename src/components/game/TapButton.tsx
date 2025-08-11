@@ -6,8 +6,9 @@ import {
   StyleSheet,
   Dimensions,
 } from 'react-native';
-import { COLORS, TYPOGRAPHY, BORDER_RADIUS } from '../../constants';
+import { TYPOGRAPHY, BORDER_RADIUS } from '../../constants';
 import { GameState } from '../../types';
+import { useThemedColors } from '../../hooks';
 
 const { width, height } = Dimensions.get('window');
 
@@ -24,25 +25,27 @@ export const TapButton: React.FC<TapButtonProps> = ({
   message,
   disabled = false,
 }) => {
+  const colors = useThemedColors();
+  
   const getButtonColor = () => {
     switch (gameState) {
       case GameState.WAITING:
-        return COLORS.GAME_WAITING;
+        return colors.GAME_WAITING;
       case GameState.READY:
-        return COLORS.GAME_READY;
+        return colors.GAME_READY;
       case GameState.COUNTDOWN:
-        return COLORS.WARNING;
+        return colors.WARNING;
       case GameState.FAILED:
-        return COLORS.ERROR;
+        return colors.ERROR;
       case GameState.GAME_COMPLETE:
-        return COLORS.SUCCESS;
+        return colors.SUCCESS;
       default:
-        return COLORS.GAME_IDLE;
+        return colors.GAME_IDLE;
     }
   };
 
   const getTextColor = () => {
-    return gameState === GameState.READY ? COLORS.BACKGROUND : COLORS.TEXT_PRIMARY;
+    return gameState === GameState.READY ? colors.BACKGROUND : colors.TEXT_PRIMARY;
   };
 
   return (

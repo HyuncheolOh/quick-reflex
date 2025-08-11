@@ -6,7 +6,8 @@ import {
   TouchableOpacity,
   TouchableOpacityProps,
 } from 'react-native';
-import { COLORS, SPACING, BORDER_RADIUS, SHADOWS } from '../../constants';
+import { SPACING, BORDER_RADIUS, SHADOWS } from '../../constants';
+import { useThemedColors } from '../../hooks';
 
 interface CardProps extends TouchableOpacityProps {
   children: React.ReactNode;
@@ -24,9 +25,24 @@ export const Card: React.FC<CardProps> = ({
   variant = 'default',
   ...touchableProps
 }) => {
+  const colors = useThemedColors();
+  
+  const getVariantStyle = () => {
+    switch (variant) {
+      case 'default':
+        return { backgroundColor: colors.CARD };
+      case 'elevated':
+        return { backgroundColor: colors.CARD, ...SHADOWS.MEDIUM };
+      case 'outlined':
+        return { backgroundColor: 'transparent', borderWidth: 1, borderColor: colors.TEXT_TERTIARY };
+      default:
+        return { backgroundColor: colors.CARD };
+    }
+  };
+  
   const cardStyle = [
     styles.base,
-    styles[variant],
+    getVariantStyle(),
     { padding: SPACING[padding] },
     style,
   ];
@@ -45,20 +61,5 @@ export const Card: React.FC<CardProps> = ({
 const styles = StyleSheet.create({
   base: {
     borderRadius: BORDER_RADIUS.LG,
-  },
-  
-  default: {
-    backgroundColor: COLORS.CARD,
-  },
-  
-  elevated: {
-    backgroundColor: COLORS.CARD,
-    ...SHADOWS.MEDIUM,
-  },
-  
-  outlined: {
-    backgroundColor: 'transparent',
-    borderWidth: 1,
-    borderColor: COLORS.TEXT_TERTIARY,
   },
 });

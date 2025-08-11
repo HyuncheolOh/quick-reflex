@@ -43,5 +43,5 @@ export interface TapGameState {
   waitStartTime?: number;
   readyStartTime?: number;
   results: number[];
-  randomDelay: number; // 2-5초 랜덤 딜레이
+  randomDelay: number; // Random delay in milliseconds
 }

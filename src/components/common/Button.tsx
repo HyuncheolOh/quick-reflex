@@ -7,7 +7,8 @@ import {
   TextStyle,
   ActivityIndicator,
 } from 'react-native';
-import { COLORS, SPACING, TYPOGRAPHY, BORDER_RADIUS, SHADOWS } from '../../constants';
+import { SPACING, TYPOGRAPHY, BORDER_RADIUS, SHADOWS } from '../../constants';
+import { useThemedColors } from '../../hooks';
 
 interface ButtonProps {
   title: string;
@@ -30,19 +31,56 @@ export const Button: React.FC<ButtonProps> = ({
   style,
   textStyle,
 }) => {
+  const colors = useThemedColors();
+  
+  const getContainerStyle = () => {
+    const baseStyle = {
+      ...styles.base,
+      ...styles[`${size}Container`],
+    };
+    
+    switch (variant) {
+      case 'primary':
+        return { ...baseStyle, backgroundColor: colors.PRIMARY };
+      case 'secondary':
+        return { ...baseStyle, backgroundColor: colors.SECONDARY };
+      case 'danger':
+        return { ...baseStyle, backgroundColor: colors.ERROR };
+      case 'ghost':
+        return { 
+          ...baseStyle, 
+          backgroundColor: 'transparent', 
+          borderWidth: 1, 
+          borderColor: colors.PRIMARY 
+        };
+      default:
+        return { ...baseStyle, backgroundColor: colors.PRIMARY };
+    }
+  };
+
+  const getTextStyle = () => {
+    const baseStyle = {
+      ...styles.baseText,
+      ...styles[`${size}Text`],
+    };
+    
+    switch (variant) {
+      case 'ghost':
+        return { ...baseStyle, color: colors.PRIMARY };
+      default:
+        return { ...baseStyle, color: colors.TEXT_PRIMARY };
+    }
+  };
+
   const buttonStyle = [
-    styles.base,
-    styles[`${variant}Container`],
-    styles[`${size}Container`],
-    disabled && styles.disabledContainer,
+    getContainerStyle(),
+    disabled && { opacity: 0.6 },
     style,
   ];
 
   const titleStyle = [
-    styles.baseText,
-    styles[`${variant}Text`],
-    styles[`${size}Text`],
-    disabled && styles.disabledText,
+    getTextStyle(),
+    disabled && { opacity: 0.6 },
     textStyle,
   ];
 
@@ -56,7 +94,7 @@ export const Button: React.FC<ButtonProps> = ({
       {loading ? (
         <ActivityIndicator
           size="small"
-          color={variant === 'ghost' ? COLORS.PRIMARY : COLORS.TEXT_PRIMARY}
+          color={variant === 'ghost' ? colors.PRIMARY : colors.TEXT_PRIMARY}
         />
       ) : (
         <Text style={titleStyle}>{title}</Text>
@@ -70,23 +108,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: BORDER_RADIUS.LG,
-    ...SHADOWS.SMALL,
-  },
-  
-  // Container variants
-  primaryContainer: {
-    backgroundColor: COLORS.PRIMARY,
-  },
-  secondaryContainer: {
-    backgroundColor: COLORS.SECONDARY,
-  },
-  dangerContainer: {
-    backgroundColor: COLORS.ERROR,
-  },
-  ghostContainer: {
-    backgroundColor: 'transparent',
-    borderWidth: 1,
-    borderColor: COLORS.PRIMARY,
     ...SHADOWS.SMALL,
   },
   
@@ -116,20 +137,6 @@ const styles = StyleSheet.create({
   baseText: {
     textAlign: 'center',
     fontWeight: TYPOGRAPHY.FONT_WEIGHT.SEMIBOLD,
-  },
-  
-  // Text variants
-  primaryText: {
-    color: COLORS.TEXT_PRIMARY,
-  },
-  secondaryText: {
-    color: COLORS.TEXT_PRIMARY,
-  },
-  dangerText: {
-    color: COLORS.TEXT_PRIMARY,
-  },
-  ghostText: {
-    color: COLORS.PRIMARY,
   },
   
   // Text sizes

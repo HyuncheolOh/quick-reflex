@@ -6,15 +6,17 @@ import {
   Animated,
 } from 'react-native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { COLORS, TYPOGRAPHY, SPACING } from '../../constants';
+import { TYPOGRAPHY, SPACING } from '../../constants';
 import { OnboardingStackParamList } from '../../types';
 import { LocalStorageService } from '../../services/storage';
+import { useThemedColors } from '../../hooks';
 
 type SplashScreenProps = {
   navigation: StackNavigationProp<OnboardingStackParamList, 'Splash'>;
 };
 
 export const SplashScreen: React.FC<SplashScreenProps> = ({ navigation }) => {
+  const colors = useThemedColors();
   const fadeAnim = new Animated.Value(0);
   const scaleAnim = new Animated.Value(0.8);
 
@@ -56,7 +58,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ navigation }) => {
   }, [navigation, fadeAnim, scaleAnim]);
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.BACKGROUND }]}>
       <Animated.View
         style={[
           styles.logoContainer,
@@ -67,12 +69,12 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ navigation }) => {
         ]}
       >
         <Text style={styles.logo}>⚡</Text>
-        <Text style={styles.title}>QuickReflex</Text>
-        <Text style={styles.subtitle}>순발력 측정 게임</Text>
+        <Text style={[styles.title, { color: colors.TEXT_PRIMARY }]}>QuickReflex</Text>
+        <Text style={[styles.subtitle, { color: colors.TEXT_SECONDARY }]}>순발력 측정 게임</Text>
       </Animated.View>
       
       <Animated.View style={[styles.footer, { opacity: fadeAnim }]}>
-        <Text style={styles.version}>v1.0.0</Text>
+        <Text style={[styles.version, { color: colors.TEXT_TERTIARY }]}>v1.0.0</Text>
       </Animated.View>
     </View>
   );
@@ -81,7 +83,6 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.BACKGROUND,
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: SPACING.XL,
@@ -99,14 +100,12 @@ const styles = StyleSheet.create({
   title: {
     fontSize: TYPOGRAPHY.FONT_SIZE.GIANT,
     fontWeight: TYPOGRAPHY.FONT_WEIGHT.EXTRABOLD,
-    color: COLORS.TEXT_PRIMARY,
     textAlign: 'center',
     marginBottom: SPACING.SM,
   },
   
   subtitle: {
     fontSize: TYPOGRAPHY.FONT_SIZE.LG,
-    color: COLORS.TEXT_SECONDARY,
     textAlign: 'center',
     fontWeight: TYPOGRAPHY.FONT_WEIGHT.MEDIUM,
   },
@@ -118,7 +117,6 @@ const styles = StyleSheet.create({
   
   version: {
     fontSize: TYPOGRAPHY.FONT_SIZE.SM,
-    color: COLORS.TEXT_TERTIARY,
     textAlign: 'center',
   },
 });
