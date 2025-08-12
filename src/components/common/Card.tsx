@@ -5,6 +5,7 @@ import {
   ViewStyle,
   TouchableOpacity,
   TouchableOpacityProps,
+  Animated,
 } from 'react-native';
 import { SPACING, BORDER_RADIUS, SHADOWS } from '../../constants';
 import { useThemedColors } from '../../hooks';
@@ -14,13 +15,13 @@ interface CardProps extends TouchableOpacityProps {
   style?: ViewStyle;
   padding?: keyof typeof SPACING;
   touchable?: boolean;
-  variant?: 'default' | 'elevated' | 'outlined';
+  variant?: 'default' | 'elevated' | 'outlined' | 'ghost';
 }
 
 export const Card: React.FC<CardProps> = ({
   children,
   style,
-  padding = 'MD',
+  padding = 'LG',
   touchable = false,
   variant = 'default',
   ...touchableProps
@@ -30,13 +31,32 @@ export const Card: React.FC<CardProps> = ({
   const getVariantStyle = () => {
     switch (variant) {
       case 'default':
-        return { backgroundColor: colors.CARD };
+        return { 
+          backgroundColor: colors.CARD,
+          ...SHADOWS.SMALL,
+        };
       case 'elevated':
-        return { backgroundColor: colors.CARD, ...SHADOWS.MEDIUM };
+        return { 
+          backgroundColor: colors.CARD, 
+          ...SHADOWS.MEDIUM,
+        };
       case 'outlined':
-        return { backgroundColor: 'transparent', borderWidth: 1, borderColor: colors.TEXT_TERTIARY };
+        return { 
+          backgroundColor: 'transparent', 
+          borderWidth: 1, 
+          borderColor: colors.TEXT_TERTIARY,
+          ...SHADOWS.NONE,
+        };
+      case 'ghost':
+        return { 
+          backgroundColor: colors.SURFACE,
+          ...SHADOWS.NONE,
+        };
       default:
-        return { backgroundColor: colors.CARD };
+        return { 
+          backgroundColor: colors.CARD,
+          ...SHADOWS.SMALL,
+        };
     }
   };
   
@@ -49,7 +69,11 @@ export const Card: React.FC<CardProps> = ({
 
   if (touchable) {
     return (
-      <TouchableOpacity style={cardStyle} activeOpacity={0.8} {...touchableProps}>
+      <TouchableOpacity 
+        style={cardStyle} 
+        activeOpacity={0.95}
+        {...touchableProps}
+      >
         {children}
       </TouchableOpacity>
     );
@@ -60,6 +84,6 @@ export const Card: React.FC<CardProps> = ({
 
 const styles = StyleSheet.create({
   base: {
-    borderRadius: BORDER_RADIUS.LG,
+    borderRadius: BORDER_RADIUS.XL,
   },
 });

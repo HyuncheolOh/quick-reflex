@@ -45,7 +45,18 @@ export const TapButton: React.FC<TapButtonProps> = ({
   };
 
   const getTextColor = () => {
-    return gameState === GameState.READY ? colors.BACKGROUND : colors.TEXT_PRIMARY;
+    switch (gameState) {
+      case GameState.WAITING:
+        return colors.TEXT_WHITE;
+      case GameState.READY:
+        return colors.TEXT_WHITE;
+      case GameState.FAILED:
+        return colors.TEXT_WHITE;
+      case GameState.GAME_COMPLETE:
+        return colors.TEXT_WHITE;
+      default:
+        return colors.TEXT_PRIMARY;
+    }
   };
 
   return (
@@ -71,11 +82,12 @@ export const TapButton: React.FC<TapButtonProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    minHeight: height * 0.7,
+    minHeight: height * 0.6,
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: BORDER_RADIUS.XL,
     margin: 16,
+    marginBottom: 32,
   },
   
   content: {
@@ -85,10 +97,11 @@ const styles = StyleSheet.create({
   },
   
   message: {
-    fontSize: TYPOGRAPHY.FONT_SIZE.XXXL,
+    fontSize: TYPOGRAPHY.FONT_SIZE.XXL,
     fontWeight: TYPOGRAPHY.FONT_WEIGHT.BOLD,
     textAlign: 'center',
-    lineHeight: 40,
+    lineHeight: TYPOGRAPHY.FONT_SIZE.XXL * 1.3,
+    paddingHorizontal: 24,
   },
   
   disabled: {

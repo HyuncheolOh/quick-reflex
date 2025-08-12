@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { Card, Button, ConfirmModal } from '../../components/common';
-import { SPACING, TYPOGRAPHY } from '../../constants';
+import { SPACING, TYPOGRAPHY, BORDER_RADIUS } from '../../constants';
 import { MainStackParamList, UserProfile } from '../../types';
 import { LocalStorageService, GameStorageService } from '../../services/storage';
 import { StatisticsUtils } from '../../utils';
@@ -112,14 +112,16 @@ export const GameListScreen: React.FC<GameListScreenProps> = ({ navigation }) =>
               
               <View style={styles.statItem}>
                 <Text style={[styles.statValue, { color: colors.PRIMARY }]}>
-                  {personalBest ? `${Math.round(personalBest)}ms` : '-'}
+                  {personalBest ? `${Math.round(personalBest)}` : '-'}
+                  <Text style={[styles.statUnit, { color: colors.TEXT_SECONDARY }]}>ms</Text>
                 </Text>
                 <Text style={[styles.statLabel, { color: colors.TEXT_SECONDARY }]}>{t.statistics.bestRecord}</Text>
               </View>
               
               <View style={styles.statItem}>
                 <Text style={[styles.statValue, { color: colors.PRIMARY }]}>
-                  {recentAverage ? `${Math.round(recentAverage)}ms` : '-'}
+                  {recentAverage ? `${Math.round(recentAverage)}` : '-'}
+                  <Text style={[styles.statUnit, { color: colors.TEXT_SECONDARY }]}>ms</Text>
                 </Text>
                 <Text style={[styles.statLabel, { color: colors.TEXT_SECONDARY }]}>{t.statistics.averageRecord}</Text>
               </View>
@@ -223,8 +225,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: SPACING.LG,
-    marginBottom: SPACING.MD,
+    padding: SPACING.XL,
+    paddingTop: SPACING.XXL,
+    marginBottom: SPACING.XL,
   },
   
   titleContainer: {
@@ -233,19 +236,21 @@ const styles = StyleSheet.create({
   },
   
   title: {
-    fontSize: TYPOGRAPHY.FONT_SIZE.XXXL,
+    fontSize: TYPOGRAPHY.FONT_SIZE.GIANT,
     fontWeight: TYPOGRAPHY.FONT_WEIGHT.EXTRABOLD,
-    marginBottom: SPACING.XS,
+    marginBottom: SPACING.SM,
+    letterSpacing: -0.5,
   },
   
   subtitle: {
-    fontSize: TYPOGRAPHY.FONT_SIZE.MD,
+    fontSize: TYPOGRAPHY.FONT_SIZE.LG,
+    opacity: 0.8,
   },
   
   settingsButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 52,
+    height: 52,
+    borderRadius: BORDER_RADIUS.XL,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -255,44 +260,52 @@ const styles = StyleSheet.create({
   },
   
   statsCard: {
-    marginHorizontal: SPACING.LG,
-    marginBottom: SPACING.LG,
+    marginHorizontal: SPACING.XL,
+    marginBottom: SPACING.XXL,
   },
   
   sectionTitle: {
-    fontSize: TYPOGRAPHY.FONT_SIZE.LG,
-    fontWeight: TYPOGRAPHY.FONT_WEIGHT.SEMIBOLD,
-    marginBottom: SPACING.MD,
+    fontSize: TYPOGRAPHY.FONT_SIZE.XXL,
+    fontWeight: TYPOGRAPHY.FONT_WEIGHT.BOLD,
+    marginBottom: SPACING.LG,
+    letterSpacing: -0.3,
   },
   
   statsGrid: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'space-around',
   },
   
   statItem: {
     flex: 1,
     alignItems: 'center',
+    paddingHorizontal: SPACING.SM,
   },
   
   statValue: {
-    fontSize: TYPOGRAPHY.FONT_SIZE.XXL,
-    fontWeight: TYPOGRAPHY.FONT_WEIGHT.BOLD,
-    marginBottom: SPACING.XS,
+    fontSize: TYPOGRAPHY.FONT_SIZE.XXXL,
+    fontWeight: TYPOGRAPHY.FONT_WEIGHT.EXTRABOLD,
+    marginBottom: SPACING.SM,
+    letterSpacing: -0.5,
   },
   
   statLabel: {
-    fontSize: TYPOGRAPHY.FONT_SIZE.SM,
+    fontSize: TYPOGRAPHY.FONT_SIZE.MD,
     textAlign: 'center',
   },
   
+  statUnit: {
+    fontSize: TYPOGRAPHY.FONT_SIZE.LG,
+    fontWeight: TYPOGRAPHY.FONT_WEIGHT.MEDIUM,
+  },
+  
   gameSection: {
-    paddingHorizontal: SPACING.LG,
-    marginBottom: SPACING.LG,
+    paddingHorizontal: SPACING.XL,
+    marginBottom: SPACING.XXL,
   },
   
   gameCard: {
-    marginBottom: SPACING.MD,
+    marginBottom: SPACING.LG,
   },
   
   comingSoonCard: {
@@ -305,16 +318,16 @@ const styles = StyleSheet.create({
   },
   
   gameIcon: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    width: 64,
+    height: 64,
+    borderRadius: BORDER_RADIUS.XL,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: SPACING.MD,
+    marginRight: SPACING.LG,
   },
   
   gameIconText: {
-    fontSize: 24,
+    fontSize: 28,
   },
   
   gameDetails: {
@@ -322,19 +335,19 @@ const styles = StyleSheet.create({
   },
   
   gameTitle: {
-    fontSize: TYPOGRAPHY.FONT_SIZE.LG,
-    fontWeight: TYPOGRAPHY.FONT_WEIGHT.SEMIBOLD,
-    marginBottom: SPACING.XS,
+    fontSize: TYPOGRAPHY.FONT_SIZE.XL,
+    fontWeight: TYPOGRAPHY.FONT_WEIGHT.BOLD,
+    marginBottom: SPACING.SM,
+    letterSpacing: -0.2,
   },
   
   gameDescription: {
-    fontSize: TYPOGRAPHY.FONT_SIZE.SM,
-    lineHeight: 18,
-    marginBottom: SPACING.XS,
+    fontSize: TYPOGRAPHY.FONT_SIZE.MD,
+    marginBottom: SPACING.SM,
   },
   
   gameStats: {
-    fontSize: TYPOGRAPHY.FONT_SIZE.XS,
+    fontSize: TYPOGRAPHY.FONT_SIZE.SM,
   },
   
   comingSoonText: {
@@ -342,7 +355,7 @@ const styles = StyleSheet.create({
   },
   
   settingsSection: {
-    paddingHorizontal: SPACING.LG,
-    paddingBottom: SPACING.XXL,
+    paddingHorizontal: SPACING.XL,
+    paddingBottom: SPACING.XXXL,
   },
 });

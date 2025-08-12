@@ -3,11 +3,7 @@ import { View, Text, StyleSheet, BackHandler } from "react-native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { TapButton, CountdownTimer } from "../../components/game";
 import { Button, ConfirmModal } from "../../components/common";
-import {
-  SPACING,
-  TYPOGRAPHY,
-  GAME_CONFIG,
-} from "../../constants";
+import { SPACING, TYPOGRAPHY, GAME_CONFIG } from "../../constants";
 import { useThemedColors } from "../../hooks";
 import { useLocalization } from "../../contexts";
 import {
@@ -37,7 +33,7 @@ export const TapTestScreen: React.FC<TapTestScreenProps> = ({ navigation }) => {
   });
 
   const [attempts, setAttempts] = useState<ReactionAttempt[]>([]);
-  const [message, setMessage] = useState<string>('');
+  const [message, setMessage] = useState<string>("");
   const [showExitModal, setShowExitModal] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
 
@@ -161,12 +157,12 @@ export const TapTestScreen: React.FC<TapTestScreenProps> = ({ navigation }) => {
     // Timer to switch from WAITING to READY
     timeoutRef.current = setTimeout(() => {
       if (isPaused) {
-        console.log('Timer interrupted: Game is paused');
+        console.log("Timer interrupted: Game is paused");
         return;
       }
 
       const now = Date.now();
-      console.log('Attempting to switch to READY state:', {
+      console.log("Attempting to switch to READY state:", {
         currentState: gameState.currentState,
         timestamp: now,
         isPaused,
@@ -174,7 +170,7 @@ export const TapTestScreen: React.FC<TapTestScreenProps> = ({ navigation }) => {
 
       // Switch to READY state
       setGameState((prev) => {
-        console.log('State update:', prev.currentState, '->', GameState.READY);
+        console.log("State update:", prev.currentState, "->", GameState.READY);
         return {
           ...prev,
           currentState: GameState.READY,
@@ -182,7 +178,7 @@ export const TapTestScreen: React.FC<TapTestScreenProps> = ({ navigation }) => {
         };
       });
 
-      console.log('Message changed:', t.game.tapNow);
+      console.log("Message changed:", t.game.tapNow);
       setMessage(t.game.tapNow);
 
       // Timer waiting for reaction in READY state
@@ -190,7 +186,7 @@ export const TapTestScreen: React.FC<TapTestScreenProps> = ({ navigation }) => {
         clearTimeout(timeoutRef.current);
       }
       timeoutRef.current = setTimeout(() => {
-        console.log('Timeout occurred - Game ended');
+        console.log("Timeout occurred - Game ended");
         handleTimeout();
       }, GAME_CONFIG.READY_TIMEOUT);
     }, delay);
@@ -270,7 +266,7 @@ export const TapTestScreen: React.FC<TapTestScreenProps> = ({ navigation }) => {
     setAttempts((currentAttempts) => {
       const totalAttempts = currentAttempts.length;
       console.log(
-        'totalAttempts / totalRounds',
+        "totalAttempts / totalRounds",
         totalAttempts,
         gameState.totalRounds
       );
@@ -331,7 +327,7 @@ export const TapTestScreen: React.FC<TapTestScreenProps> = ({ navigation }) => {
             navigateToResults(gameSession);
           }, 2000);
         } catch (error) {
-          console.error('Error saving game session:', error);
+          console.error("Error saving game session:", error);
           setTimeout(() => {
             navigateToResults();
           }, 2000);
@@ -375,22 +371,22 @@ export const TapTestScreen: React.FC<TapTestScreenProps> = ({ navigation }) => {
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     }
-    
+
     setShowExitModal(false);
-    
+
     // Save incomplete game session
     try {
       const gameSession = await GameStorageService.saveGameSession(
         "TAP_TEST",
         attempts,
         false, // Game not completed
-        true  // Game was stopped/failed
+        true // Game was stopped/failed
       );
-      
+
       // Navigate to results with the stopped game session
       navigation.navigate("Result", { gameSession });
     } catch (error) {
-      console.error('Error saving incomplete game session:', error);
+      console.error("Error saving incomplete game session:", error);
       // Create temporary session for navigation if save fails
       const tempSession = {
         id: "temp",
@@ -414,13 +410,23 @@ export const TapTestScreen: React.FC<TapTestScreenProps> = ({ navigation }) => {
   return (
     <View style={[styles.container, { backgroundColor: colors.BACKGROUND }]}>
       {/* Header */}
-      <View style={[styles.header, { borderBottomColor: colors.TEXT_TERTIARY }]}>
+      <View
+        style={[styles.header, { borderBottomColor: colors.TEXT_TERTIARY }]}
+      >
         <View style={styles.progressContainer}>
-          <View style={[styles.progressBackground, { backgroundColor: colors.TEXT_TERTIARY }]}>
+          <View
+            style={[
+              styles.progressBackground,
+              { backgroundColor: colors.TEXT_TERTIARY },
+            ]}
+          >
             <View
               style={[
                 styles.progressFill,
-                { width: `${getProgressPercentage()}%`, backgroundColor: colors.PRIMARY },
+                {
+                  width: `${getProgressPercentage()}%`,
+                  backgroundColor: colors.PRIMARY,
+                },
               ]}
             />
           </View>
@@ -444,14 +450,8 @@ export const TapTestScreen: React.FC<TapTestScreenProps> = ({ navigation }) => {
                 onPress={() => setShowExitModal(true)}
                 variant="ghost"
                 size="small"
-                style={[
-                  styles.controlButton, 
-                  { 
-                    backgroundColor: colors.ERROR + "20",
-                    borderColor: colors.ERROR,
-                    borderWidth: 1,
-                  }
-                ]}
+                style={styles.controlButton}
+                textStyle={{ color: colors.TEXT_RED }}
               />
             </View>
           )}
@@ -468,9 +468,7 @@ export const TapTestScreen: React.FC<TapTestScreenProps> = ({ navigation }) => {
           <TapButton
             gameState={gameState.currentState}
             onPress={handleTap}
-            message={
-              isPaused ? t.game.pausedMessage : message
-            }
+            message={isPaused ? t.game.pausedMessage : message}
             disabled={isPaused}
           />
         )}
@@ -478,8 +476,14 @@ export const TapTestScreen: React.FC<TapTestScreenProps> = ({ navigation }) => {
 
       {/* Quick Stats */}
       {attempts.length > 0 && (
-        <View style={[styles.quickStats, { borderTopColor: colors.TEXT_TERTIARY }]}>
-          <Text style={[styles.quickStatsTitle, { color: colors.TEXT_SECONDARY }]}>{t.game.currentProgress}</Text>
+        <View
+          style={[styles.quickStats, { borderTopColor: colors.TEXT_TERTIARY }]}
+        >
+          <Text
+            style={[styles.quickStatsTitle, { color: colors.TEXT_SECONDARY }]}
+          >
+            {t.game.currentProgress}
+          </Text>
           <View style={styles.statsRow}>
             <Text style={[styles.statText, { color: colors.TEXT_PRIMARY }]}>
               {t.game.successful}: {attempts.filter((a) => a.isValid).length}

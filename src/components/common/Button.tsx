@@ -107,25 +107,25 @@ const styles = StyleSheet.create({
   base: {
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: BORDER_RADIUS.LG,
+    borderRadius: BORDER_RADIUS.XL,
     ...SHADOWS.SMALL,
   },
   
   // Container sizes
   smallContainer: {
-    paddingHorizontal: SPACING.MD,
-    paddingVertical: SPACING.SM,
-    minHeight: 36,
-  },
-  mediumContainer: {
     paddingHorizontal: SPACING.LG,
     paddingVertical: SPACING.MD,
     minHeight: 44,
   },
-  largeContainer: {
+  mediumContainer: {
     paddingHorizontal: SPACING.XL,
     paddingVertical: SPACING.LG,
     minHeight: 52,
+  },
+  largeContainer: {
+    paddingHorizontal: SPACING.XXL,
+    paddingVertical: SPACING.XL,
+    minHeight: 60,
   },
   
   // Disabled state
