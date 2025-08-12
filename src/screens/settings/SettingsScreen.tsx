@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  Alert,
 } from 'react-native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { Card, Button } from '../../components/common';
@@ -12,6 +13,11 @@ import { SPACING, TYPOGRAPHY } from '../../constants';
 import { MainStackParamList } from '../../types';
 import { useTheme, useLocalization } from '../../contexts';
 import { useThemedColors } from '../../hooks';
+import { LocalStorageService } from '../../services/storage';
+import { CommonActions } from '@react-navigation/native';
+
+// App version
+const APP_VERSION = '0.0.1';
 
 type SettingsScreenProps = {
   navigation: StackNavigationProp<MainStackParamList, 'Settings'>;
@@ -21,6 +27,11 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation }) =>
   const { themeMode, setThemeMode, toggleTheme } = useTheme();
   const { language, setLanguage, t } = useLocalization();
   const colors = useThemedColors();
+  
+  // Developer features state
+  const [isDeveloperMode, setIsDeveloperMode] = useState(false);
+  const versionTapCount = useRef(0);
+  const tapTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const themeOptions = [
     { value: 'system', label: t.settings.themeOptions.system, icon: '⚙️' },
@@ -32,6 +43,103 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation }) =>
     { value: 'ko', label: t.settings.languageOptions.korean, icon: '🇰🇷' },
     { value: 'en', label: t.settings.languageOptions.english, icon: '🇺🇸' },
   ];
+
+  // Developer features functions
+  const handleVersionTap = () => {
+    versionTapCount.current += 1;
+    
+    // Clear previous timeout
+    if (tapTimeoutRef.current) {
+      clearTimeout(tapTimeoutRef.current);
+    }
+    
+    if (versionTapCount.current >= 10) {
+      setIsDeveloperMode(true);
+      versionTapCount.current = 0;
+      Alert.alert(
+        '🛠️ Developer Mode',
+        'Developer features enabled!',
+        [{ text: 'OK' }]
+      );
+    } else {
+      // Reset counter after 2 seconds of inactivity
+      tapTimeoutRef.current = setTimeout(() => {
+        versionTapCount.current = 0;
+      }, 2000);
+    }
+  };
+
+  const handleDataReset = () => {
+    Alert.alert(
+      '⚠️ Data Reset',
+      'This will delete all game data, settings, and restart the tutorial. Are you sure?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Reset',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              // Clear all local storage
+              await LocalStorageService.clearAllData();
+              
+              Alert.alert(
+                '✅ Reset Complete',
+                'All data has been cleared. The app will restart.',
+                [
+                  {
+                    text: 'OK',
+                    onPress: () => {
+                      // Navigate to onboarding
+                      navigation.dispatch(
+                        CommonActions.reset({
+                          index: 0,
+                          routes: [{ name: 'Onboarding' }],
+                        })
+                      );
+                    },
+                  },
+                ]
+              );
+            } catch (error) {
+              console.error('Error resetting data:', error);
+              Alert.alert('Error', 'Failed to reset data. Please try again.');
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const handleRestartTutorial = () => {
+    Alert.alert(
+      '📚 Restart Tutorial',
+      'This will restart the tutorial from the beginning. Your game data will be preserved.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Restart',
+          onPress: async () => {
+            try {
+              // Mark onboarding as incomplete
+              await LocalStorageService.setOnboardingCompleted(false);
+              
+              // Navigate to onboarding
+              navigation.dispatch(
+                CommonActions.reset({
+                  index: 0,
+                  routes: [{ name: 'Onboarding' }],
+                })
+              );
+            } catch (error) {
+              console.error('Error restarting tutorial:', error);
+              Alert.alert('Error', 'Failed to restart tutorial. Please try again.');
+            }
+          },
+        },
+      ]
+    );
+  };
 
   const renderThemeOption = (option: typeof themeOptions[0]) => (
     <TouchableOpacity
@@ -129,6 +237,57 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation }) =>
           </View>
         </Card>
 
+        {/* Developer Features */}
+        {isDeveloperMode && (
+          <Card style={[styles.section, { backgroundColor: colors.WARNING + '20', borderColor: colors.WARNING }]}>
+            <Text style={[styles.sectionTitle, { color: colors.WARNING }]}>
+              🛠️ Developer Features
+            </Text>
+            <Text style={[styles.sectionDescription, { color: colors.TEXT_SECONDARY }]}>
+              Advanced features for developers and testers.
+            </Text>
+            
+            <View style={styles.developerActions}>
+              <Button
+                title="📚 Restart Tutorial"
+                onPress={handleRestartTutorial}
+                variant="ghost"
+                style={[styles.developerButton, { borderColor: colors.INFO }]}
+                textStyle={{ color: colors.INFO }}
+              />
+              <Button
+                title="⚠️ Reset All Data"
+                onPress={handleDataReset}
+                variant="ghost"
+                style={[styles.developerButton, { borderColor: colors.ERROR }]}
+                textStyle={{ color: colors.ERROR }}
+              />
+            </View>
+          </Card>
+        )}
+
+        {/* Version Info */}
+        <Card style={[styles.section, { backgroundColor: colors.CARD }]}>
+          <Text style={[styles.sectionTitle, { color: colors.TEXT_PRIMARY }]}>
+            About
+          </Text>
+          
+          <TouchableOpacity onPress={handleVersionTap} style={styles.versionContainer}>
+            <Text style={[styles.versionLabel, { color: colors.TEXT_SECONDARY }]}>
+              Version
+            </Text>
+            <Text style={[styles.versionValue, { color: colors.TEXT_PRIMARY }]}>
+              {APP_VERSION}
+            </Text>
+          </TouchableOpacity>
+          
+          {isDeveloperMode && (
+            <Text style={[styles.developerModeIndicator, { color: colors.WARNING }]}>
+              🛠️ Developer Mode Active
+            </Text>
+          )}
+        </Card>
+
         {/* Back Button */}
         <View style={styles.buttonContainer}>
           <Button
@@ -216,5 +375,43 @@ const styles = StyleSheet.create({
   
   backButton: {
     marginBottom: SPACING.XXL,
+  },
+  
+  // Developer features styles
+  developerActions: {
+    gap: SPACING.MD,
+  },
+  
+  developerButton: {
+    borderWidth: 1,
+    alignSelf: 'flex-start',
+  },
+  
+  // Version info styles
+  versionContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: SPACING.MD,
+    borderRadius: 8,
+    marginBottom: SPACING.SM,
+  },
+  
+  versionLabel: {
+    fontSize: TYPOGRAPHY.FONT_SIZE.MD,
+    fontWeight: TYPOGRAPHY.FONT_WEIGHT.MEDIUM,
+  },
+  
+  versionValue: {
+    fontSize: TYPOGRAPHY.FONT_SIZE.MD,
+    fontWeight: TYPOGRAPHY.FONT_WEIGHT.SEMIBOLD,
+    fontFamily: 'monospace',
+  },
+  
+  developerModeIndicator: {
+    fontSize: TYPOGRAPHY.FONT_SIZE.SM,
+    fontWeight: TYPOGRAPHY.FONT_WEIGHT.BOLD,
+    textAlign: 'center',
+    marginTop: SPACING.SM,
   },
 });

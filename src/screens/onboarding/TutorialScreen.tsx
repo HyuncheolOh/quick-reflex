@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { Button } from '../../components/common';
-import { SPACING, TYPOGRAPHY, GAME_COLORS, BORDER_RADIUS } from '../../constants';
+import { SPACING, TYPOGRAPHY, BORDER_RADIUS } from '../../constants';
 import { OnboardingStackParamList } from '../../types';
 import { useThemedColors } from '../../hooks';
 import { useLocalization } from '../../contexts';
@@ -70,10 +70,10 @@ export const TutorialScreen: React.FC<TutorialScreenProps> = ({ navigation }) =>
     if (step.demo === 'waiting') {
       return colorAnim.interpolate({
         inputRange: [0, 1],
-        outputRange: [GAME_COLORS.WAITING, GAME_COLORS.READY],
+        outputRange: [colors.ERROR, colors.SUCCESS], // 빨강에서 초록으로 (대기→준비)
       });
     } else if (step.demo === 'ready') {
-      return GAME_COLORS.READY;
+      return colors.SUCCESS; // 준비 상태는 초록색
     }
     return colors.PRIMARY;
   };
@@ -121,7 +121,7 @@ export const TutorialScreen: React.FC<TutorialScreenProps> = ({ navigation }) =>
                 { backgroundColor: getDemoColor() },
               ]}
             >
-              <Text style={[styles.demoText, { color: colors.TEXT_PRIMARY }]}>
+              <Text style={[styles.demoText, { color: colors.TEXT_WHITE }]}>
                 {currentStepData.demo === 'waiting' ? t.tutorial.demo.waiting : t.tutorial.demo.tapNow}
               </Text>
             </Animated.View>

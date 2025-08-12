@@ -76,7 +76,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ navigation }) => {
       </Animated.View>
       
       <Animated.View style={[styles.footer, { opacity: fadeAnim }]}>
-        <Text style={[styles.version, { color: colors.TEXT_TERTIARY }]}>v1.0.0</Text>
+        <Text style={[styles.version, { color: colors.TEXT_TERTIARY }]}>v0.0.1</Text>
       </Animated.View>
     </View>
   );

@@ -117,7 +117,12 @@ export class LocalStorageService {
   // Clear all data (for reset functionality)
   static async clearAllData(): Promise<void> {
     try {
-      await AsyncStorage.multiRemove(Object.values(STORAGE_KEYS));
+      // Get all keys with our prefix
+      const allKeys = await AsyncStorage.getAllKeys();
+      const quickReflexKeys = allKeys.filter(key => key.startsWith('@quickreflex:'));
+      
+      // Remove all app-related data
+      await AsyncStorage.multiRemove(quickReflexKeys);
     } catch (error) {
       console.error('Error clearing all data:', error);
       throw error;
