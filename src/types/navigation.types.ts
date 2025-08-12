@@ -24,4 +24,8 @@ export type MainStackParamList = {
     gameType: GameType;
   };
   LeaderboardList: undefined;
+  NicknameSetup: {
+    from?: string;
+    gameSession?: GameSession;
+  };
 };

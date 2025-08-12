@@ -51,26 +51,87 @@ class UserIdentityService {
   }
 
   /**
-   * Set user nickname and leaderboard preferences
+   * Set user nickname
+   */
+  static async setNickname(nickname: string): Promise<void> {
+    try {
+      await LocalStorageService.setItem(this.NICKNAME_KEY, nickname);
+
+      // Update user profile or create if doesn't exist
+      let profile = await LocalStorageService.getUserProfile();
+      if (!profile) {
+        // Create a basic profile if it doesn't exist
+        const uuid = await this.getUserUUID();
+        profile = {
+          id: `user_${Date.now()}`,
+          uuid,
+          createdAt: Date.now(),
+          onboardingCompleted: true,
+          leaderboardOptIn: true,
+          preferences: {
+            soundEnabled: true,
+            vibrationEnabled: true,
+          },
+        };
+      }
+
+      const updatedProfile: UserProfile = {
+        ...profile,
+        nickname,
+      };
+      await LocalStorageService.setUserProfile(updatedProfile);
+    } catch (error) {
+      console.error('Error setting nickname:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Set leaderboard opt-in preference
+   */
+  static async setLeaderboardOptIn(optIn: boolean): Promise<void> {
+    try {
+      await LocalStorageService.setItem(
+        this.LEADERBOARD_OPT_IN_KEY, 
+        optIn.toString()
+      );
+
+      // Update user profile or create if doesn't exist
+      let profile = await LocalStorageService.getUserProfile();
+      if (!profile) {
+        // Create a basic profile if it doesn't exist
+        const uuid = await this.getUserUUID();
+        profile = {
+          id: `user_${Date.now()}`,
+          uuid,
+          createdAt: Date.now(),
+          onboardingCompleted: true,
+          leaderboardOptIn: optIn,
+          preferences: {
+            soundEnabled: true,
+            vibrationEnabled: true,
+          },
+        };
+      }
+
+      const updatedProfile: UserProfile = {
+        ...profile,
+        leaderboardOptIn: optIn,
+      };
+      await LocalStorageService.setUserProfile(updatedProfile);
+    } catch (error) {
+      console.error('Error setting leaderboard opt-in:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Set user nickname and leaderboard preferences (legacy method)
    */
   static async setupNickname(data: NicknameSetupData): Promise<void> {
     try {
-      await LocalStorageService.setItem(this.NICKNAME_KEY, data.nickname);
-      await LocalStorageService.setItem(
-        this.LEADERBOARD_OPT_IN_KEY, 
-        data.consentToLeaderboard.toString()
-      );
-
-      // Update user profile
-      const profile = await LocalStorageService.getUserProfile();
-      if (profile) {
-        const updatedProfile: UserProfile = {
-          ...profile,
-          nickname: data.nickname,
-          leaderboardOptIn: data.consentToLeaderboard,
-        };
-        await LocalStorageService.setUserProfile(updatedProfile);
-      }
+      await this.setNickname(data.nickname);
+      await this.setLeaderboardOptIn(data.consentToLeaderboard);
     } catch (error) {
       console.error('Error setting up nickname:', error);
       throw error;

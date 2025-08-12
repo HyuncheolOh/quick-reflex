@@ -40,21 +40,33 @@ class FirebaseLeaderboardService {
     }
   ): Promise<SubmitScoreResponse> {
     try {
+      console.log('FirebaseLeaderboardService.submitScore called with:', { gameType, sessionData });
+      
       const userIdentity = await UserIdentityService.getUserIdentity();
+      console.log('User identity:', userIdentity);
       
       if (!userIdentity.isOptedIn || !userIdentity.nickname) {
-        throw new Error('User not opted in to leaderboard or nickname not set');
+        const error = 'User not opted in to leaderboard or nickname not set';
+        console.log('Submission blocked:', error);
+        throw new Error(error);
       }
 
       const entryId = `${userIdentity.uuid}_${gameType}`;
+      console.log('Creating document with ID:', entryId);
+      
       const docRef = doc(db, this.COLLECTION_NAME, entryId);
       
       // Get existing entry to check if this is an improvement
+      console.log('Checking for existing entry...');
       const existingDoc = await getDoc(docRef);
       const existingData = existingDoc.data() as LeaderboardEntry | undefined;
       
+      console.log('Existing data:', existingData);
+      console.log('New best time:', sessionData.bestTime);
+      
       // Only update if this is a new best time or first entry
       if (!existingData || sessionData.bestTime < existingData.bestTime) {
+        console.log('Submitting new/improved score...');
         const leaderboardEntry: Omit<LeaderboardEntry, 'id' | 'rank'> = {
           userId: userIdentity.uuid,
           nickname: userIdentity.nickname,
@@ -66,23 +78,33 @@ class FirebaseLeaderboardService {
           timestamp: Date.now(),
         };
 
+        console.log('Saving to Firestore:', leaderboardEntry);
+        
         await setDoc(docRef, {
           ...leaderboardEntry,
           updatedAt: serverTimestamp(),
         });
 
+        console.log('Successfully saved to Firestore');
+
         // Update user stats
+        console.log('Updating user stats...');
         await this.updateUserStats(userIdentity.uuid, gameType, leaderboardEntry);
 
         // Calculate rank
+        console.log('Calculating rank...');
         const rank = await this.calculateRank(gameType, sessionData.bestTime);
+        console.log('Calculated rank:', rank);
 
-        return {
+        const result = {
           success: true,
           rank,
           isNewRecord: !existingData || sessionData.bestTime < existingData.bestTime,
           message: rank <= 100 ? 'Score submitted successfully!' : 'Score recorded but not in top 100',
         };
+        
+        console.log('Returning result:', result);
+        return result;
       }
 
       return {

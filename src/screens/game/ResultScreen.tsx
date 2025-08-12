@@ -33,11 +33,60 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({
   );
   const [leaderboardRank, setLeaderboardRank] = useState<number | null>(null);
   const [isSubmittingToLeaderboard, setIsSubmittingToLeaderboard] = useState(false);
+  const [hasNickname, setHasNickname] = useState<boolean>(false);
 
   useEffect(() => {
     loadComparisonData();
+    checkNickname();
     submitToLeaderboard();
   }, []);
+
+  useEffect(() => {
+    // Check when returning from nickname setup
+    const unsubscribe = navigation.addListener('focus', () => {
+      console.log('ResultScreen focused, checking nickname and leaderboard status...');
+      checkNickname().then(() => {
+        // Force a re-render to update leaderboard card
+        console.log('Nickname check completed');
+      });
+    });
+
+    return unsubscribe;
+  }, [navigation]);
+
+  const checkNickname = async () => {
+    try {
+      const userIdentity = await UserIdentityService.getUserIdentity();
+      const hasNick = !!userIdentity.nickname;
+      setHasNickname(hasNick);
+      
+      // If nickname was just set and we don't have a rank yet, check leaderboard
+      if (hasNick && !leaderboardRank && !gameSession.isFailed && gameSession.statistics.validAttempts > 0) {
+        console.log('Checking leaderboard for existing rank...');
+        await checkExistingLeaderboardRank();
+      }
+    } catch (error) {
+      console.error('Error checking nickname:', error);
+    }
+  };
+
+  const checkExistingLeaderboardRank = async () => {
+    try {
+      const userIdentity = await UserIdentityService.getUserIdentity();
+      if (!userIdentity.uuid || !userIdentity.nickname) return;
+
+      // Check if user already has an entry in the leaderboard for this game type
+      const leaderboardData = await LeaderboardService.getLeaderboard(gameSession.gameType, 100);
+      const userEntry = leaderboardData.entries.find(entry => entry.userId === userIdentity.uuid);
+      
+      if (userEntry && userEntry.rank) {
+        console.log('Found existing leaderboard rank:', userEntry.rank);
+        setLeaderboardRank(userEntry.rank);
+      }
+    } catch (error) {
+      console.error('Error checking existing leaderboard rank:', error);
+    }
+  };
 
   const submitToLeaderboard = async () => {
     try {
@@ -48,11 +97,19 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({
 
       const userIdentity = await UserIdentityService.getUserIdentity();
       if (!userIdentity.isOptedIn || !userIdentity.nickname) {
-        // User hasn't set up leaderboard participation
+        console.log('User not opted in or no nickname, skipping leaderboard submission');
         return;
       }
 
       setIsSubmittingToLeaderboard(true);
+
+      console.log('Submitting to leaderboard:', {
+        gameType: gameSession.gameType,
+        bestTime: gameSession.statistics.bestTime,
+        averageTime: gameSession.statistics.averageTime,
+        validAttempts: gameSession.statistics.validAttempts,
+        totalAttempts: gameSession.statistics.totalAttempts,
+      });
 
       const result = await LeaderboardService.submitScore(gameSession.gameType, {
         bestTime: gameSession.statistics.bestTime,
@@ -65,8 +122,11 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({
         statistics: gameSession.statistics,
       });
 
+      console.log('Leaderboard submission result:', result);
+
       if (result.success && result.rank) {
         setLeaderboardRank(result.rank);
+        console.log('Set leaderboard rank:', result.rank);
       }
     } catch (error) {
       console.error("Error submitting to leaderboard:", error);
@@ -154,28 +214,74 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({
   };
 
   const renderLeaderboardCard = () => {
-    if (!leaderboardRank || gameSession.isFailed) return null;
+    if (gameSession.isFailed) return null;
 
-    return (
-      <Card style={[styles.leaderboardCard, { backgroundColor: colors.PRIMARY + '20' }]}>
-        <View style={styles.leaderboardContent}>
-          <Text style={[styles.leaderboardTitle, { color: colors.PRIMARY }]}>
-            🏆 {t.leaderboard.title}
-          </Text>
-          <Text style={[styles.leaderboardRank, { color: colors.TEXT_PRIMARY }]}>
-            {leaderboardRank <= 100 
-              ? `${t.leaderboard.currentRank}: #${leaderboardRank}`
-              : t.leaderboard.notRanked
-            }
-          </Text>
-          {leaderboardRank <= 10 && (
-            <Text style={[styles.leaderboardBadge, { color: colors.WARNING }]}>
-              ⭐ TOP 10 ⭐
+    // Show nickname setup prompt if no nickname
+    if (!hasNickname) {
+      return (
+        <Card style={[styles.leaderboardCard, { backgroundColor: colors.WARNING + '20' }]}>
+          <View style={styles.leaderboardContent}>
+            <Text style={[styles.leaderboardTitle, { color: colors.WARNING }]}>
+              🏆 {t.leaderboard.title}
             </Text>
-          )}
-        </View>
-      </Card>
-    );
+            <Text style={[styles.leaderboardSubtitle, { color: colors.TEXT_PRIMARY }]}>
+              {t.leaderboard.nicknameSetup.subtitle}
+            </Text>
+            <Button
+              title={t.leaderboard.nicknameSetup.title}
+              onPress={() => navigation.navigate('NicknameSetup', { 
+                from: 'Result', 
+                gameSession 
+              })}
+              style={styles.nicknameSetupButton}
+              size="small"
+            />
+          </View>
+        </Card>
+      );
+    }
+
+    // Show rank if submitted successfully
+    if (leaderboardRank) {
+      return (
+        <Card style={[styles.leaderboardCard, { backgroundColor: colors.PRIMARY + '20' }]}>
+          <View style={styles.leaderboardContent}>
+            <Text style={[styles.leaderboardTitle, { color: colors.PRIMARY }]}>
+              🏆 {t.leaderboard.title}
+            </Text>
+            <Text style={[styles.leaderboardRank, { color: colors.TEXT_PRIMARY }]}>
+              {leaderboardRank <= 100 
+                ? `${t.leaderboard.currentRank}: #${leaderboardRank}`
+                : t.leaderboard.notRanked
+              }
+            </Text>
+            {leaderboardRank <= 10 && (
+              <Text style={[styles.leaderboardBadge, { color: colors.WARNING }]}>
+                ⭐ TOP 10 ⭐
+              </Text>
+            )}
+          </View>
+        </Card>
+      );
+    }
+
+    // Show submitting state
+    if (isSubmittingToLeaderboard) {
+      return (
+        <Card style={[styles.leaderboardCard, { backgroundColor: colors.SURFACE }]}>
+          <View style={styles.leaderboardContent}>
+            <Text style={[styles.leaderboardTitle, { color: colors.TEXT_SECONDARY }]}>
+              🏆 {t.leaderboard.title}
+            </Text>
+            <Text style={[styles.leaderboardSubtitle, { color: colors.TEXT_SECONDARY }]}>
+              {t.leaderboard.loading}
+            </Text>
+          </View>
+        </Card>
+      );
+    }
+
+    return null;
   };
 
   const renderComparisonCard = () => {
@@ -402,6 +508,13 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.SM,
   },
 
+  leaderboardSubtitle: {
+    fontSize: TYPOGRAPHY.FONT_SIZE.MD,
+    textAlign: 'center',
+    marginBottom: SPACING.MD,
+    lineHeight: 20,
+  },
+
   leaderboardRank: {
     fontSize: TYPOGRAPHY.FONT_SIZE.XL,
     fontWeight: TYPOGRAPHY.FONT_WEIGHT.SEMIBOLD,
@@ -411,6 +524,10 @@ const styles = StyleSheet.create({
   leaderboardBadge: {
     fontSize: TYPOGRAPHY.FONT_SIZE.MD,
     fontWeight: TYPOGRAPHY.FONT_WEIGHT.BOLD,
+    marginTop: SPACING.SM,
+  },
+
+  nicknameSetupButton: {
     marginTop: SPACING.SM,
   },
 

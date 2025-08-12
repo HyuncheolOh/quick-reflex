@@ -3,7 +3,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { MainStackParamList } from '../types';
 import { GameListScreen, TapTestScreen, ResultScreen } from '../screens/game';
 import { SettingsScreen } from '../screens/settings';
-import { LeaderboardScreen } from '../screens/leaderboard';
+import { LeaderboardScreen, NicknameSetupScreen } from '../screens/leaderboard';
 import { useThemedColors } from '../hooks';
 
 const Stack = createStackNavigator<MainStackParamList>();
@@ -39,6 +39,7 @@ export const MainNavigator: React.FC = () => {
       <Stack.Screen name="Result" component={ResultScreen} />
       <Stack.Screen name="Settings" component={SettingsScreen} />
       <Stack.Screen name="Leaderboard" component={LeaderboardScreen} />
+      <Stack.Screen name="NicknameSetup" component={NicknameSetupScreen} />
     </Stack.Navigator>
   );
 };
