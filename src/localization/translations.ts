@@ -14,6 +14,8 @@ export const ko = {
     loading: '로딩 중...',
     error: '오류',
     success: '성공',
+    retry: '다시 시도',
+    comingSoon: '곧 출시',
   },
 
   // App
@@ -60,6 +62,7 @@ export const ko = {
 
   // Game Modes
   gameModes: {
+    startGame: '게임 시작',
     tapTest: {
       title: '순발력 테스트',
       description: '빨간 화면이 초록색으로 바뀌는 순간 탭하세요!',
@@ -117,6 +120,45 @@ export const ko = {
       inconsistent: '반응속도의 일관성을 향상시켜보세요 📈',
       excellent: '뛰어난 반응속도를 가지고 있습니다! ⚡',
       needsPractice: '더 빠른 반응을 위해 연습해보세요! 🏃‍♂️',
+    },
+  },
+
+  // Leaderboard
+  leaderboard: {
+    title: '리더보드',
+    subtitle: '전 세계 플레이어들과 순위를 비교해보세요',
+    topPlayers: '상위 플레이어',
+    yourRanking: '나의 순위',
+    bestRank: '최고 순위',
+    currentRank: '현재 순위',
+    notRanked: '순위 없음',
+    loading: '리더보드를 불러오는 중...',
+    noData: '리더보드 데이터가 없습니다',
+    totalPlayers: (count: number) => `총 ${count}명의 플레이어`,
+    lastUpdated: (time: string) => `마지막 업데이트: ${time}`,
+    nicknameSetup: {
+      title: '닉네임 설정',
+      subtitle: '리더보드에 참여하려면 닉네임을 설정해주세요',
+    },
+    nickname: '닉네임',
+    nicknamePlaceholder: '당신의 닉네임을 입력하세요',
+    nicknameHelper: '2-20자, 한글/영문/숫자 가능',
+    setup: '설정 완료',
+    skipForNow: '나중에 설정',
+    consent: {
+      participate: '리더보드에 참여하겠습니다',
+      description: '게임 결과를 리더보드에 공유하여 다른 플레이어들과 순위를 비교할 수 있습니다.',
+    },
+    dataRetention: {
+      title: '데이터 보존 안내',
+      message: '앱을 삭제하면 모든 데이터(닉네임, 기록 등)가 함께 삭제됩니다. 이를 이해하셨나요?',
+      acknowledge: '이해했습니다',
+    },
+    filters: {
+      title: '정렬',
+      bestSpeed: '최고 속도',
+      bestAverage: '평균 속도',
+      mostGames: '게임 횟수',
     },
   },
 
@@ -220,6 +262,8 @@ export const ko = {
     nicknameTooShort: '닉네임은 2자 이상이어야 합니다',
     nicknameTooLong: '닉네임은 20자 이하여야 합니다',
     nicknameInvalidChars: '특수문자는 사용할 수 없습니다',
+    invalidNickname: '올바르지 않은 닉네임입니다',
+    nicknameRules: '닉네임은 2-20자의 한글, 영문, 숫자만 사용 가능합니다.',
     userIdRequired: '사용자 ID가 필요합니다',
   },
 
@@ -228,6 +272,8 @@ export const ko = {
     dataResetComplete: '모든 데이터가 초기화되었습니다.',
     dataResetError: '데이터 초기화 중 오류가 발생했습니다.',
     shareError: '결과 공유 중 오류가 발생했습니다.',
+    leaderboardError: '리더보드를 불러오는 중 오류가 발생했습니다.',
+    setupError: '설정 중 오류가 발생했습니다.',
   },
 };
 
@@ -247,6 +293,8 @@ export const en = {
     loading: 'Loading...',
     error: 'Error',
     success: 'Success',
+    retry: 'Retry',
+    comingSoon: 'Coming Soon',
   },
 
   // App
@@ -293,6 +341,7 @@ export const en = {
 
   // Game Modes
   gameModes: {
+    startGame: 'Start Game',
     tapTest: {
       title: 'Reaction Test',
       description: 'Tap when the screen turns green!',
@@ -447,12 +496,53 @@ export const en = {
     challenge: 'Challenge yourself too! #QuickReflex #ReactionTime',
   },
 
+  // Leaderboard
+  leaderboard: {
+    title: 'Leaderboard',
+    subtitle: 'Compare your rankings with players worldwide',
+    topPlayers: 'Top Players',
+    yourRanking: 'Your Ranking',
+    bestRank: 'Best Rank',
+    currentRank: 'Current Rank',
+    notRanked: 'Not Ranked',
+    loading: 'Loading leaderboard...',
+    noData: 'No leaderboard data available',
+    totalPlayers: (count: number) => `Total ${count} players`,
+    lastUpdated: (time: string) => `Last updated: ${time}`,
+    nicknameSetup: {
+      title: 'Nickname Setup',
+      subtitle: 'Please set a nickname to participate in the leaderboard',
+    },
+    nickname: 'Nickname',
+    nicknamePlaceholder: 'Enter your nickname',
+    nicknameHelper: '2-20 characters, Korean/English/Numbers allowed',
+    setup: 'Complete Setup',
+    skipForNow: 'Skip for Now',
+    consent: {
+      participate: 'I will participate in the leaderboard',
+      description: 'Share your game results on the leaderboard to compare rankings with other players.',
+    },
+    dataRetention: {
+      title: 'Data Retention Notice',
+      message: 'If you delete the app, all data (nickname, records, etc.) will be deleted together. Do you understand this?',
+      acknowledge: 'I Understand',
+    },
+    filters: {
+      title: 'Sort By',
+      bestSpeed: 'Best Speed',
+      bestAverage: 'Best Average',
+      mostGames: 'Most Games',
+    },
+  },
+
   // Validation
   validation: {
     nicknameRequired: 'Please enter a nickname',
     nicknameTooShort: 'Nickname must be at least 2 characters',
     nicknameTooLong: 'Nickname must be 20 characters or less',
     nicknameInvalidChars: 'Special characters are not allowed',
+    invalidNickname: 'Invalid nickname',
+    nicknameRules: 'Nickname must be 2-20 characters using only Korean, English, or numbers.',
     userIdRequired: 'User ID is required',
   },
 
@@ -461,6 +551,8 @@ export const en = {
     dataResetComplete: 'All data has been reset.',
     dataResetError: 'An error occurred while resetting data.',
     shareError: 'An error occurred while sharing results.',
+    leaderboardError: 'An error occurred while loading the leaderboard.',
+    setupError: 'An error occurred during setup.',
   },
 };
 

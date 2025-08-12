@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
-import { View, Text, StyleSheet, BackHandler } from "react-native";
+import { View, Text, StyleSheet, BackHandler, TouchableOpacity } from "react-native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { TapButton, CountdownTimer } from "../../components/game";
 import { Button, ConfirmModal } from "../../components/common";
-import { SPACING, TYPOGRAPHY, GAME_CONFIG } from "../../constants";
+import { SPACING, TYPOGRAPHY, GAME_CONFIG, BORDER_RADIUS } from "../../constants";
 import { useThemedColors } from "../../hooks";
 import { useLocalization } from "../../contexts";
 import {
@@ -413,48 +413,67 @@ export const TapTestScreen: React.FC<TapTestScreenProps> = ({ navigation }) => {
       <View
         style={[styles.header, { borderBottomColor: colors.TEXT_TERTIARY }]}
       >
-        <View style={styles.progressContainer}>
-          <View
-            style={[
-              styles.progressBackground,
-              { backgroundColor: colors.TEXT_TERTIARY },
-            ]}
+        <View style={styles.headerTop}>
+          <TouchableOpacity
+            style={[styles.backButton, { backgroundColor: colors.SURFACE }]}
+            onPress={() => gameState.currentState === GameState.IDLE ? navigation.goBack() : setShowExitModal(true)}
           >
+            <Text style={[styles.backButtonText, { color: colors.TEXT_PRIMARY }]}>←</Text>
+          </TouchableOpacity>
+          
+          <View style={styles.gameTitle}>
+            <Text style={[styles.gameTitleText, { color: colors.TEXT_PRIMARY }]}>
+              {t.gameModes.tapTest.title}
+            </Text>
+          </View>
+          
+          <View style={styles.placeholder} />
+        </View>
+        
+        <View style={styles.progressSection}>
+          <View style={styles.progressInfo}>
             <View
               style={[
-                styles.progressFill,
-                {
-                  width: `${getProgressPercentage()}%`,
-                  backgroundColor: colors.PRIMARY,
-                },
+                styles.progressBackground,
+                { backgroundColor: colors.TEXT_TERTIARY },
               ]}
-            />
-          </View>
-          <Text style={[styles.progressText, { color: colors.TEXT_PRIMARY }]}>
-            {attempts.length}/{gameState.totalRounds}
-          </Text>
-        </View>
-
-        {gameState.currentState !== GameState.IDLE &&
-          gameState.currentState !== GameState.GAME_COMPLETE && (
-            <View style={styles.controlButtons}>
-              <Button
-                title={isPaused ? t.game.resume : t.game.pause}
-                onPress={isPaused ? resumeGame : pauseGame}
-                variant="ghost"
-                size="small"
-                style={styles.controlButton}
-              />
-              <Button
-                title={t.game.stop}
-                onPress={() => setShowExitModal(true)}
-                variant="ghost"
-                size="small"
-                style={styles.controlButton}
-                textStyle={{ color: colors.TEXT_RED }}
+            >
+              <View
+                style={[
+                  styles.progressFill,
+                  {
+                    width: `${getProgressPercentage()}%`,
+                    backgroundColor: colors.PRIMARY,
+                  },
+                ]}
               />
             </View>
-          )}
+            <Text style={[styles.progressText, { color: colors.TEXT_PRIMARY }]}>
+              {attempts.length}/{gameState.totalRounds}
+            </Text>
+          </View>
+
+          {gameState.currentState !== GameState.IDLE &&
+            gameState.currentState !== GameState.GAME_COMPLETE && (
+              <View style={styles.controlButtons}>
+                <Button
+                  title={isPaused ? t.game.resume : t.game.pause}
+                  onPress={isPaused ? resumeGame : pauseGame}
+                  variant="ghost"
+                  size="small"
+                  style={styles.controlButton}
+                />
+                <Button
+                  title={t.game.stop}
+                  onPress={() => setShowExitModal(true)}
+                  variant="ghost"
+                  size="small"
+                  style={styles.controlButton}
+                  textStyle={{ color: colors.TEXT_RED }}
+                />
+              </View>
+            )}
+        </View>
       </View>
 
       {/* Game Area */}
@@ -527,14 +546,53 @@ const styles = StyleSheet.create({
   },
 
   header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
     padding: SPACING.LG,
+    paddingTop: SPACING.XL,
     borderBottomWidth: 1,
   },
 
-  progressContainer: {
+  headerTop: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: SPACING.MD,
+  },
+
+  backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: BORDER_RADIUS.LG,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  backButtonText: {
+    fontSize: TYPOGRAPHY.FONT_SIZE.XXL,
+    fontWeight: TYPOGRAPHY.FONT_WEIGHT.BOLD,
+  },
+
+  gameTitle: {
+    flex: 1,
+    alignItems: "center",
+  },
+
+  gameTitleText: {
+    fontSize: TYPOGRAPHY.FONT_SIZE.LG,
+    fontWeight: TYPOGRAPHY.FONT_WEIGHT.BOLD,
+  },
+
+  placeholder: {
+    width: 40,
+    height: 40,
+  },
+
+  progressSection: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+
+  progressInfo: {
     flex: 1,
     marginRight: SPACING.MD,
     alignItems: "center",

@@ -1,0 +1,1 @@
+export { LeaderboardEntryComponent } from './LeaderboardEntry';

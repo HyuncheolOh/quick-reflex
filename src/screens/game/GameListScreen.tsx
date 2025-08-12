@@ -133,7 +133,7 @@ export const GameListScreen: React.FC<GameListScreenProps> = ({ navigation }) =>
         <View style={styles.gameSection}>
           <Text style={[styles.sectionTitle, { color: colors.TEXT_PRIMARY }]}>{t.navigation.gameList}</Text>
           
-          <Card style={[styles.gameCard, { backgroundColor: colors.CARD }]} touchable onPress={startTapTest}>
+          <Card style={[styles.gameCard, { backgroundColor: colors.CARD }]}>
             <View style={styles.gameInfo}>
               <View style={[styles.gameIcon, { backgroundColor: colors.PRIMARY }]}>
                 <Text style={styles.gameIconText}>⚡</Text>
@@ -145,6 +145,21 @@ export const GameListScreen: React.FC<GameListScreenProps> = ({ navigation }) =>
                 </Text>
                 <Text style={[styles.gameStats, { color: colors.TEXT_TERTIARY }]}>{t.gameModes.tapTest.stats}</Text>
               </View>
+            </View>
+            <View style={styles.gameActions}>
+              <Button
+                title={t.gameModes.startGame}
+                onPress={startTapTest}
+                style={styles.gameActionButton}
+                size="small"
+              />
+              <Button
+                title={t.leaderboard.title}
+                onPress={() => navigation.navigate('Leaderboard', { gameType: 'TAP_TEST' })}
+                variant="ghost"
+                style={styles.gameActionButton}
+                size="small"
+              />
             </View>
           </Card>
 
@@ -166,6 +181,22 @@ export const GameListScreen: React.FC<GameListScreenProps> = ({ navigation }) =>
                 </Text>
               </View>
             </View>
+            <View style={styles.gameActions}>
+              <Button
+                title={t.common.comingSoon}
+                onPress={() => {}}
+                disabled={true}
+                style={styles.gameActionButton}
+                size="small"
+              />
+              <Button
+                title={t.leaderboard.title}
+                onPress={() => navigation.navigate('Leaderboard', { gameType: 'AUDIO_TEST' })}
+                variant="ghost"
+                style={styles.gameActionButton}
+                size="small"
+              />
+            </View>
           </Card>
 
           <Card style={[styles.gameCard, styles.comingSoonCard, { backgroundColor: colors.CARD }] as any}>
@@ -184,6 +215,22 @@ export const GameListScreen: React.FC<GameListScreenProps> = ({ navigation }) =>
                   {t.gameModes.goNoGoTest.stats}
                 </Text>
               </View>
+            </View>
+            <View style={styles.gameActions}>
+              <Button
+                title={t.common.comingSoon}
+                onPress={() => {}}
+                disabled={true}
+                style={styles.gameActionButton}
+                size="small"
+              />
+              <Button
+                title={t.leaderboard.title}
+                onPress={() => navigation.navigate('Leaderboard', { gameType: 'GO_NO_GO_TEST' })}
+                variant="ghost"
+                style={styles.gameActionButton}
+                size="small"
+              />
             </View>
           </Card>
         </View>
@@ -357,5 +404,18 @@ const styles = StyleSheet.create({
   settingsSection: {
     paddingHorizontal: SPACING.XL,
     paddingBottom: SPACING.XXXL,
+  },
+  
+  gameActions: {
+    flexDirection: 'row',
+    gap: SPACING.SM,
+    marginTop: SPACING.MD,
+    paddingTop: SPACING.MD,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(0,0,0,0.1)',
+  },
+  
+  gameActionButton: {
+    flex: 1,
   },
 });
