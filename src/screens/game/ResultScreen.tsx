@@ -7,6 +7,8 @@ import { Button, Card } from "../../components/common";
 import { SPACING, TYPOGRAPHY } from "../../constants";
 import { MainStackParamList, GameSession } from "../../types";
 import { GameStorageService } from "../../services/storage";
+import { LeaderboardService } from "../../services/LeaderboardService";
+import { UserIdentityService } from "../../services/UserIdentityService";
 import { StatisticsUtils, GameLogic } from "../../utils";
 import { useThemedColors } from "../../hooks";
 import { useLocalization } from "../../contexts";
@@ -29,10 +31,49 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({
   const [insights, setInsights] = useState<Array<{ key: string; params: any }>>(
     []
   );
+  const [leaderboardRank, setLeaderboardRank] = useState<number | null>(null);
+  const [isSubmittingToLeaderboard, setIsSubmittingToLeaderboard] = useState(false);
 
   useEffect(() => {
     loadComparisonData();
+    submitToLeaderboard();
   }, []);
+
+  const submitToLeaderboard = async () => {
+    try {
+      // Only submit if game was successful and user has opted in
+      if (gameSession.isFailed || gameSession.statistics.validAttempts === 0) {
+        return;
+      }
+
+      const userIdentity = await UserIdentityService.getUserIdentity();
+      if (!userIdentity.isOptedIn || !userIdentity.nickname) {
+        // User hasn't set up leaderboard participation
+        return;
+      }
+
+      setIsSubmittingToLeaderboard(true);
+
+      const result = await LeaderboardService.submitScore(gameSession.gameType, {
+        bestTime: gameSession.statistics.bestTime,
+        averageTime: gameSession.statistics.averageTime,
+        gamesPlayed: 1,
+        accuracy: Math.round(
+          (gameSession.statistics.validAttempts / gameSession.statistics.totalAttempts) * 100
+        ),
+        attempts: gameSession.attempts,
+        statistics: gameSession.statistics,
+      });
+
+      if (result.success && result.rank) {
+        setLeaderboardRank(result.rank);
+      }
+    } catch (error) {
+      console.error("Error submitting to leaderboard:", error);
+    } finally {
+      setIsSubmittingToLeaderboard(false);
+    }
+  };
 
   const loadComparisonData = async () => {
     try {
@@ -110,6 +151,31 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({
       console.error("Error sharing result:", error);
       Alert.alert(t.common.error, t.messages.shareError);
     }
+  };
+
+  const renderLeaderboardCard = () => {
+    if (!leaderboardRank || gameSession.isFailed) return null;
+
+    return (
+      <Card style={[styles.leaderboardCard, { backgroundColor: colors.PRIMARY + '20' }]}>
+        <View style={styles.leaderboardContent}>
+          <Text style={[styles.leaderboardTitle, { color: colors.PRIMARY }]}>
+            🏆 {t.leaderboard.title}
+          </Text>
+          <Text style={[styles.leaderboardRank, { color: colors.TEXT_PRIMARY }]}>
+            {leaderboardRank <= 100 
+              ? `${t.leaderboard.currentRank}: #${leaderboardRank}`
+              : t.leaderboard.notRanked
+            }
+          </Text>
+          {leaderboardRank <= 10 && (
+            <Text style={[styles.leaderboardBadge, { color: colors.WARNING }]}>
+              ⭐ TOP 10 ⭐
+            </Text>
+          )}
+        </View>
+      </Card>
+    );
   };
 
   const renderComparisonCard = () => {
@@ -249,6 +315,9 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({
           />
         </View>
 
+        {/* Leaderboard Card */}
+        {renderLeaderboardCard()}
+
         {/* Comparison with previous results */}
         {renderComparisonCard()}
 
@@ -314,6 +383,35 @@ const styles = StyleSheet.create({
 
   resultsContainer: {
     padding: SPACING.LG,
+  },
+
+  leaderboardCard: {
+    marginHorizontal: SPACING.LG,
+    marginBottom: SPACING.LG,
+    borderWidth: 2,
+    borderColor: 'transparent',
+  },
+
+  leaderboardContent: {
+    alignItems: 'center',
+  },
+
+  leaderboardTitle: {
+    fontSize: TYPOGRAPHY.FONT_SIZE.LG,
+    fontWeight: TYPOGRAPHY.FONT_WEIGHT.BOLD,
+    marginBottom: SPACING.SM,
+  },
+
+  leaderboardRank: {
+    fontSize: TYPOGRAPHY.FONT_SIZE.XL,
+    fontWeight: TYPOGRAPHY.FONT_WEIGHT.SEMIBOLD,
+    marginBottom: SPACING.XS,
+  },
+
+  leaderboardBadge: {
+    fontSize: TYPOGRAPHY.FONT_SIZE.MD,
+    fontWeight: TYPOGRAPHY.FONT_WEIGHT.BOLD,
+    marginTop: SPACING.SM,
   },
 
   comparisonCard: {
