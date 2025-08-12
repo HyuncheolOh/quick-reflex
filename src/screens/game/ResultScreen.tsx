@@ -61,7 +61,13 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({
       setHasNickname(hasNick);
       
       // If nickname was just set and we don't have a rank yet, check leaderboard
-      if (hasNick && !leaderboardRank && !gameSession.isFailed && gameSession.statistics.validAttempts > 0) {
+      // Don't check for games that failed due to early taps or timeouts
+      if (hasNick && 
+          !leaderboardRank && 
+          !gameSession.isFailed && 
+          gameSession.statistics.validAttempts > 0 &&
+          gameSession.failReason !== 'EARLY_TAP' &&
+          gameSession.failReason !== 'TIMEOUT') {
         console.log('Checking leaderboard for existing rank...');
         await checkExistingLeaderboardRank();
       }
@@ -91,7 +97,16 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({
   const submitToLeaderboard = async () => {
     try {
       // Only submit if game was successful and user has opted in
-      if (gameSession.isFailed || gameSession.statistics.validAttempts === 0) {
+      // Prevent submission for failed games, including early taps and timeouts
+      if (gameSession.isFailed || 
+          gameSession.statistics.validAttempts === 0 ||
+          gameSession.failReason === 'EARLY_TAP' ||
+          gameSession.failReason === 'TIMEOUT') {
+        console.log('Skipping leaderboard submission - game failed:', {
+          isFailed: gameSession.isFailed,
+          validAttempts: gameSession.statistics.validAttempts,
+          failReason: gameSession.failReason
+        });
         return;
       }
 
@@ -214,7 +229,12 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({
   };
 
   const renderLeaderboardCard = () => {
-    if (gameSession.isFailed) return null;
+    // Don't show leaderboard card for failed games, including early taps and timeouts
+    if (gameSession.isFailed || 
+        gameSession.failReason === 'EARLY_TAP' || 
+        gameSession.failReason === 'TIMEOUT') {
+      return null;
+    }
 
     // Show nickname setup prompt if no nickname
     if (!hasNickname) {

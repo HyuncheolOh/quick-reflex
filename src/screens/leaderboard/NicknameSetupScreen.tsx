@@ -109,9 +109,21 @@ export const NicknameSetupScreen: React.FC<NicknameSetupScreenProps> = ({
       await UserIdentityService.setLeaderboardOptIn(isOptedIn);
       
       // Submit previous game to leaderboard if available and opted in
+      // Don't submit games that failed due to early taps or timeouts
       let leaderboardResult = null;
-      if (gameSession && isOptedIn && !gameSession.isFailed && gameSession.statistics.validAttempts > 0) {
+      if (gameSession && 
+          isOptedIn && 
+          !gameSession.isFailed && 
+          gameSession.statistics.validAttempts > 0 &&
+          gameSession.failReason !== 'EARLY_TAP' &&
+          gameSession.failReason !== 'TIMEOUT') {
         leaderboardResult = await submitGameToLeaderboard();
+      } else if (gameSession) {
+        console.log('Skipping leaderboard submission in nickname setup - game failed:', {
+          isFailed: gameSession.isFailed,
+          validAttempts: gameSession.statistics.validAttempts,
+          failReason: gameSession.failReason
+        });
       }
       
       // Show success message with rank if available

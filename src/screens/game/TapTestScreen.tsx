@@ -119,19 +119,20 @@ export const TapTestScreen: React.FC<TapTestScreenProps> = ({ navigation }) => {
       false
     );
 
-    console.log("timeout", timeoutAttempt);
+    console.log("timeout - ending game immediately", timeoutAttempt);
 
     setAttempts((prev) => {
       const newAttempts = [...prev, timeoutAttempt];
-      console.log("timeout", newAttempts);
+      console.log("timeout attempts", newAttempts);
       return newAttempts;
     });
 
     setGameState((prev) => ({ ...prev, currentState: GameState.FAILED }));
     setMessage(t.game.tooSlow);
 
+    // End game immediately instead of continuing
     setTimeout(() => {
-      nextRound();
+      completeGame('TIMEOUT');
     }, GAME_CONFIG.RESULT_DISPLAY_TIME);
   };
 
@@ -218,12 +219,20 @@ export const TapTestScreen: React.FC<TapTestScreenProps> = ({ navigation }) => {
           false
         );
 
-        setAttempts((prev) => [...prev, failedAttempt]);
+        console.log("early click - ending game immediately", failedAttempt);
+
+        setAttempts((prev) => {
+          const newAttempts = [...prev, failedAttempt];
+          console.log("early click attempts", newAttempts);
+          return newAttempts;
+        });
+        
         setGameState((prev) => ({ ...prev, currentState: GameState.FAILED }));
         setMessage(t.game.tooEarly);
 
+        // End game immediately - no more rounds
         setTimeout(() => {
-          completeGame();
+          completeGame('EARLY_TAP');
         }, GAME_CONFIG.RESULT_DISPLAY_TIME);
         break;
 
@@ -298,7 +307,7 @@ export const TapTestScreen: React.FC<TapTestScreenProps> = ({ navigation }) => {
     });
   };
 
-  const completeGame = async () => {
+  const completeGame = async (failReason?: 'EARLY_TAP' | 'TIMEOUT') => {
     setAttempts((currentAttempts) => {
       const successfulAttempts = currentAttempts.filter(
         (a) => a.isValid
@@ -320,7 +329,8 @@ export const TapTestScreen: React.FC<TapTestScreenProps> = ({ navigation }) => {
             "TAP_TEST",
             currentAttempts,
             true,
-            successfulAttempts === 0
+            successfulAttempts === 0,
+            failReason
           );
 
           setTimeout(() => {

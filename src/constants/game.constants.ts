@@ -1,12 +1,12 @@
 // Game Configuration
 export const GAME_CONFIG = {
-  TOTAL_ROUNDS: 5,
+  TOTAL_ROUNDS: 3, // Reduced from 5 to 3 rounds
   MIN_WAIT_TIME: 1000, // 1 second - shortened for quick gameplay
-  MAX_WAIT_TIME: 3000, // 3 seconds - shortened for quick gameplay
+  MAX_WAIT_TIME: 2500, // 2.5 seconds - reduced for tighter gameplay
   COUNTDOWN_DURATION: 3000, // 3 seconds (3, 2, 1)
   READY_TIMEOUT: 2000, // 2 seconds timeout for tapping after green - shortened
-  ROUND_DELAY: 800, // Delay between rounds
-  RESULT_DISPLAY_TIME: 1200, // Result display duration
+  ROUND_DELAY: 500, // Reduced from 800ms to 500ms for tighter gameplay
+  RESULT_DISPLAY_TIME: 800, // Reduced from 1200ms to 800ms for faster transitions
 } as const;
 
 // Validation Constants
